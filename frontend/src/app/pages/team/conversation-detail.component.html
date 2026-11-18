@@ -1,0 +1,147 @@
+<main class="chat-page team-chat-page">
+  <header class="chat-topbar team-chat-header">
+    <a
+      class="back-btn"
+      routerLink="/team/chats"
+      [queryParams]="room ? { course: room.course_id } : {}"
+      aria-label="Назад к чатам"
+      ><app-icon name="back" [size]="18"
+    /></a>
+    <div class="chat-person">
+      <h1 class="chat-title">{{ room?.peer_name || 'Переписка' }}</h1>
+      <p *ngIf="room">{{ courseName(room.course_code) }}</p>
+    </div>
+  </header>
+  <div class="decision-actions" *ngIf="room?.status === 'open'">
+    <button
+      class="btn btn-primary"
+      type="button"
+      [disabled]="busy || !room?.can_write"
+      (click)="open('add')"
+    >
+      Добавить в команду</button
+    ><button class="btn btn-outline" type="button" [disabled]="busy" (click)="open('decline')">
+      Отказать
+    </button>
+  </div>
+  <div class="room-status" *ngIf="room?.status === 'joined'">
+    <app-icon name="check" [size]="16" />Вы в одной команде<a
+      routerLink="/team/teams"
+      [queryParams]="{ course: room!.course_id }"
+      >Открыть</a
+    >
+  </div>
+  <p class="room-status" *ngIf="room?.status === 'declined'">Общение завершено</p>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка переписки"></div>
+  <div
+    class="messages-container"
+    #messageList
+    role="log"
+    aria-label="Сообщения"
+    *ngIf="!loading && room"
+  >
+    <button
+      *ngIf="canLoadOlder"
+      type="button"
+      class="btn btn-ghost older-messages"
+      [disabled]="loadingOlder"
+      (click)="loadOlder()"
+    >
+      {{ loadingOlder ? 'Загрузка…' : 'Ранние сообщения' }}
+    </button>
+    <p class="chat-empty" *ngIf="!messages.length">Обсудите проект и познакомьтесь.</p>
+    <div
+      class="message"
+      *ngFor="let msg of messages"
+      [class.mine]="msg.sender_id === myId"
+      [class.theirs]="msg.sender_id !== myId"
+    >
+      <div class="bubble">{{ msg.content }}</div>
+      <time class="msg-time">{{ msg.created_at | date: 'HH:mm' }}</time>
+    </div>
+    <div #messagesEnd></div>
+  </div>
+  <p *ngIf="error" class="error-msg chat-error" role="alert">{{ error }}</p>
+  <form class="chat-input-area" *ngIf="room" (ngSubmit)="send()">
+    <input
+      type="text"
+      class="chat-input"
+      aria-label="Сообщение"
+      name="message"
+      placeholder="Сообщение…"
+      autocomplete="off"
+      maxlength="2000"
+      [(ngModel)]="newMessage"
+      [disabled]="!room.can_write"
+    /><button
+      type="submit"
+      class="send-btn"
+      [disabled]="!newMessage.trim() || !!pending || !room.can_write || !chat.connected()"
+      aria-label="Отправить сообщение"
+    >
+      <app-icon name="send" [size]="20" />
+    </button>
+  </form>
+  <app-sheet
+    *ngIf="panel"
+    [title]="panel === 'add' ? 'Добавить в команду' : 'Завершить общение?'"
+    [locked]="busy"
+    (closed)="close()"
+  >
+    <form class="sheet-form" (ngSubmit)="decide()" #form="ngForm">
+      <div class="sheet-body">
+        <ng-container *ngIf="panel === 'add' && room">
+          <p *ngIf="room.my_team_id" class="decision-copy">
+            Добавить {{ room.peer_name }} в «{{ room.my_team_name }}»?
+          </p>
+          <p *ngIf="room.my_team_id" class="field-note">{{ room.my_team_size }} из 5 участников</p>
+          <div class="form-group" *ngIf="!room.my_team_id">
+            <label for="new-team-name">Название новой команды</label
+            ><input
+              id="new-team-name"
+              class="form-control"
+              name="teamName"
+              [(ngModel)]="teamName"
+              required
+              minlength="2"
+              maxlength="50"
+              placeholder="Как назовём команду?"
+            />
+          </div>
+          <p *ngIf="otherTeam" class="error-msg mt-16">Собеседник уже состоит в другой команде.</p>
+          <p *ngIf="room.my_team_size >= 5" class="error-msg mt-16">В команде уже 5 участников.</p>
+        </ng-container>
+        <p *ngIf="panel === 'decline'" class="decision-copy">
+          Диалог исчезнет из списка. История сохранится.
+        </p>
+        <p *ngIf="decisionError" class="error-msg mt-16" role="alert">{{ decisionError }}</p>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-outline" type="button" [disabled]="busy" (click)="close()">
+          Отмена</button
+        ><button
+          class="btn btn-primary"
+          type="submit"
+          [disabled]="
+            busy ||
+            !form.valid ||
+            (panel === 'add' &&
+              (otherTeam ||
+                (room?.my_team_size || 0) >= 5 ||
+                (!room?.my_team_id && teamName.trim().length < 2)))
+          "
+        >
+          {{
+            busy
+              ? 'Сохраняем…'
+              : panel === 'decline'
+                ? 'Отказать'
+                : room?.my_team_id
+                  ? 'Добавить'
+                  : 'Создать и добавить'
+          }}
+        </button>
+      </div>
+    </form>
+  </app-sheet>
+</main>

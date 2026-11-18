@@ -1,0 +1,166 @@
+:host {
+  display: block;
+}
+.team-discover {
+  max-width: 510px;
+  overflow-x: clip;
+  --course-picker-width: 100%;
+}
+.team-discover app-course-picker {
+  display: block;
+}
+.deck {
+  margin-top: 24px;
+}
+.card-stage {
+  position: relative;
+  padding: 0 6px 12px;
+  isolation: isolate;
+}
+.next-card {
+  position: absolute;
+  inset: 12px 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+  z-index: -1;
+}
+.teammate-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 330px;
+  padding: 42px 24px 32px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: center;
+  user-select: none;
+  cursor: grab;
+  will-change: transform;
+  transition:
+    transform 0.22s ease-out,
+    opacity 0.18s ease-out,
+    border-color 0.15s;
+}
+.teammate-card.dragging {
+  transition: none;
+  cursor: grabbing;
+}
+.teammate-card.leaving {
+  pointer-events: none;
+}
+.teammate-card.saving-right {
+  border-color: var(--accent);
+}
+.teammate-card.passing-left {
+  border-color: var(--ink);
+}
+.candidate-identity {
+  max-width: 100%;
+  pointer-events: none;
+}
+.candidate-initials {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: #5f533d;
+  font-size: 26px;
+  font-weight: 550;
+}
+.candidate-identity h2 {
+  font-size: 25px;
+  overflow-wrap: anywhere;
+}
+.candidate-role {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.candidate-skills {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 22px;
+  max-width: 100%;
+  pointer-events: none;
+}
+.all-skills {
+  font-size: 12px;
+  margin: 8px 0 -10px;
+}
+.swipe-indicator {
+  position: absolute;
+  top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+}
+.save-indicator {
+  left: 15px;
+  color: var(--accent);
+  transform: rotate(-7deg);
+}
+.pass-indicator {
+  right: 15px;
+  color: var(--ink);
+  transform: rotate(7deg);
+}
+.saving-right .save-indicator,
+.passing-left .pass-indicator {
+  opacity: 1;
+}
+.saving-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: -1;
+  font-size: 13px;
+  color: var(--muted);
+}
+.deck-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+.gesture-hint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin: 16px 0 24px;
+}
+@media (max-width: 640px) {
+  .deck {
+    margin-top: 20px;
+  }
+  .teammate-card {
+    min-height: clamp(260px, 37dvh, 330px);
+    padding: 42px 20px 28px;
+  }
+  .candidate-initials {
+    width: 64px;
+    height: 64px;
+    font-size: 23px;
+    margin-bottom: 18px;
+  }
+  .candidate-identity h2 {
+    font-size: 23px;
+  }
+}

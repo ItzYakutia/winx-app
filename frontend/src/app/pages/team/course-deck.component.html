@@ -1,20 +1,92 @@
-<main class="team-page">
-  <header class="team-header"><div><p class="eyebrow">Team Mode · Find your people</p><h1>Better projects start together.</h1><p class="intro">Meet classmates taking your course. Save a good fit, then build your team.</p></div><a routerLink="/team/shortlist" class="btn btn-outline">View saved ☆</a></header>
-  <app-course-picker [disabled]="saving" (courseChange)="selectCourse($event)"></app-course-picker>
-  <div *ngIf="loading" class="spinner" aria-label="Loading classmates"></div>
-  <div *ngIf="error" class="error-msg" role="alert">{{ error }} <button *ngIf="!current" class="btn btn-ghost" (click)="load()">Retry</button><span *ngIf="current">Your card is still here. Try Save or Pass again.</span></div>
-  <p *ngIf="feedback" class="success-message" role="status">{{ feedback }}</p>
-  <section class="deck-area" *ngIf="!loading && current as candidate">
-    <article class="candidate-card" [style.transform]="'translateX(' + dragX + 'px) rotate(' + dragX / 30 + 'deg)'" (pointerdown)="pointerDown($event)" (pointermove)="pointerMove($event)" (pointerup)="pointerUp($event)" (pointercancel)="cancelGesture()" (lostpointercapture)="cancelGesture()" [attr.aria-busy]="saving">
-      <span class="gesture-hint" *ngIf="dragX > 40">Save ☆</span><span class="gesture-hint" *ngIf="dragX < -40">Pass</span>
-      <div class="initials" aria-hidden="true">{{ initials(candidate.name) }}</div>
-      <p class="eyebrow">{{ course?.code }} · Classmate</p><h2>{{ candidate.name || 'Student #' + candidate.user_id }}</h2>
-      <p class="role">{{ candidate.preferred_role || 'Open to different roles' }}</p>
-      <div class="skill-list"><span class="skill" *ngFor="let skill of candidate.skills">{{ skill }}</span><span *ngIf="!candidate.skills.length" class="field-note">No skills added yet</span></div>
-      <p class="card-footer">Looking for teammates in {{ course?.title }}.<br />Swipe right to save, or use the buttons below.</p>
-    </article>
-    <p class="deck-count">{{ candidates.length }} classmates in this batch</p>
-    <div class="actions deck-controls"><button class="btn btn-outline" (click)="choose('pass')" [disabled]="saving">← Pass</button><button class="btn btn-primary" (click)="choose('like')" [disabled]="saving">{{ saving ? 'Saving…' : 'Save ☆' }}</button></div>
+<main class="team-page team-discover">
+  <header class="screen-heading"><h1>Найти тиммейтов</h1></header>
+  <app-course-picker [disabled]="saving" (courseChange)="selectCourse($event)" />
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка кандидатов"></div>
+  <section *ngIf="current" class="deck" aria-label="Поиск тиммейтов">
+    <div class="card-stage">
+      <div *ngIf="candidates.length > 1" class="next-card" aria-hidden="true"></div>
+      <article
+        #swipeCard
+        *ngFor="let candidate of candidates | slice: 0 : 1; trackBy: trackCandidate"
+        class="teammate-card"
+        appSwipeCard
+        [swipeDisabled]="saving"
+        (swipeDrag)="dragX = $event"
+        (swiped)="swipe($event)"
+        [class.dragging]="dragX !== 0 && !leaving"
+        [class.leaving]="!!leaving"
+        [class.saving-right]="dragX > 20 || leaving === 'right'"
+        [class.passing-left]="dragX < -20 || leaving === 'left'"
+        [style.transform]="cardTransform"
+        [style.opacity]="leaving ? 0 : 1"
+        tabindex="0"
+        [attr.aria-label]="'Карточка тиммейта: ' + candidate.name"
+        aria-keyshortcuts="ArrowLeft ArrowRight"
+        [attr.aria-busy]="saving"
+      >
+        <span class="swipe-indicator save-indicator" aria-hidden="true"
+          ><app-icon name="heart" [size]="16" />Нравится</span
+        >
+        <span class="swipe-indicator pass-indicator" aria-hidden="true"
+          ><app-icon name="close" [size]="16" />Пропустить</span
+        >
+        <div class="candidate-identity">
+          <span class="candidate-initials" aria-hidden="true">{{ initials(candidate.name) }}</span>
+          <h2>{{ candidate.name || 'Студент' }}</h2>
+          <p class="candidate-role">{{ candidate.preferred_role || 'Роль пока не указана' }}</p>
+        </div>
+        <div class="candidate-skills" *ngIf="candidate.skills.length">
+          <span class="skill" *ngFor="let skill of candidate.skills | slice: 0 : 4">{{
+            skill
+          }}</span>
+        </div>
+        <button
+          *ngIf="candidate.skills.length > 4"
+          class="btn btn-ghost all-skills"
+          type="button"
+          (click)="selected = candidate"
+        >
+          Все навыки · {{ candidate.skills.length }}
+        </button>
+      </article>
+      <span *ngIf="saving" class="saving-label" role="status">Сохраняем выбор…</span>
+    </div>
+    <div class="deck-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        [disabled]="saving"
+        (click)="choose('pass')"
+        aria-label="Пропустить тиммейта"
+      >
+        <app-icon name="close" [size]="20" />Пропустить</button
+      ><button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="saving"
+        (click)="choose('like')"
+        aria-label="Лайкнуть тиммейта"
+      >
+        <app-icon name="heart" [size]="20" />Нравится
+      </button>
+    </div>
+    <p class="gesture-hint">Вправо — начать общение, влево — пропустить</p>
   </section>
-  <section *ngIf="course && !loading && !current && !error" class="card empty-state"><div class="emoji" aria-hidden="true">✦</div><h3>You’re all caught up for {{ course.code }}</h3><p>No more eligible classmates right now. Try another course or come back later.</p><div class="actions mt-24" style="justify-content: center;"><button class="btn btn-outline" (click)="load()">Refresh candidates</button><a routerLink="/team/shortlist" class="btn btn-primary">See saved classmates</a></div></section>
+  <div *ngIf="error" class="error-msg" role="alert">
+    {{ error }}<button *ngIf="!current" class="btn btn-ghost" (click)="load()">Повторить</button>
+  </div>
+  <section *ngIf="course && !loading && !current && !error" class="empty-state">
+    <h3>На сегодня все</h3>
+    <p>Попробуйте другой предмет или загляните позже.</p>
+    <button type="button" class="btn btn-outline mt-16" (click)="load()">Обновить</button>
+  </section>
+  <p *ngIf="feedback" class="quiet-toast" role="status">{{ feedback }}</p>
+  <app-sheet *ngIf="selected" [title]="selected.name || 'Студент'" (closed)="selected = null"
+    ><div class="sheet-body">
+      <p *ngIf="selected.preferred_role" class="detail-role">{{ selected.preferred_role }}</p>
+      <div class="skill-list">
+        <span class="skill" *ngFor="let skill of selected.skills">{{ skill }}</span>
+      </div>
+    </div></app-sheet
+  >
 </main>

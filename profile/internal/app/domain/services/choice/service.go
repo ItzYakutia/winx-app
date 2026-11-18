@@ -44,7 +44,7 @@ func NewServiceWithRepository(repo repository.Repository) Service {
 // Choose records a Like or Pass for a candidate within one course. The call is
 // idempotent, so a client can safely retry after a failure; repeating or
 // changing a choice never creates a second record. Nothing is shared with the
-// candidate, a Like is not a match and a Pass stays private.
+// candidate for a Pass. A Like opens a course conversation; it is not a Social match.
 func (s *service) Choose(ctx context.Context, userID, candidateID, courseID int64, choice string) error {
 	if choice != Like && choice != Pass {
 		return ErrInvalidChoice

@@ -1,156 +1,228 @@
-<div class="page" style="padding-top: 84px; max-width: 640px;">
-  <div class="page-header">
-    <h2>My Profile 👤</h2>
-    <p>Fill in your details to get better matches</p>
-  </div>
-
-  <div *ngIf="loading" class="spinner"></div>
-
-  <form *ngIf="!loading" (ngSubmit)="save()" #form="ngForm">
-
-    <!-- Photo -->
-    <div class="card mb-16">
-      <div class="section-title">Profile Photo</div>
-      <div class="photo-section">
-        <div class="profile-photo" [style.background-image]="photoUrl ? 'url(' + photoUrl + ')' : ''">
-          <span *ngIf="!photoUrl" class="photo-emoji">🧚</span>
-        </div>
-        <div class="photo-actions">
-          <label class="btn btn-outline" for="photoInput">
-            {{ photoUploading ? 'Uploading...' : '📷 Upload Photo' }}
-          </label>
-          <input id="photoInput" type="file" accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
-          <p class="photo-hint">JPEG or PNG, square preferred</p>
-        </div>
+<main class="page profile-overview">
+  <header class="screen-heading">
+    <h1>Профиль</h1>
+    <span class="inline-status" role="status" *ngIf="saveSuccess">Сохранено</span>
+  </header>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка профиля"></div>
+  <ng-container *ngIf="!loading">
+    <div class="profile-identity">
+      <button
+        type="button"
+        class="profile-initial photo-edit"
+        (click)="photoInput.click()"
+        [disabled]="photoUploading"
+        [style.background-image]="photoUrl ? 'url(' + photoUrl + ')' : ''"
+        aria-label="Изменить фото"
+      >
+        <span *ngIf="!photoUrl">{{ (profile.first_name || '?').charAt(0) }}</span
+        ><span class="photo-edit-badge"><app-icon name="upload" [size]="12" /></span></button
+      ><input
+        #photoInput
+        id="photoInput"
+        type="file"
+        accept="image/*"
+        (change)="onPhotoSelected($event)"
+        hidden
+      />
+      <div>
+        <h2>{{ profile.first_name || 'Мой профиль' }}</h2>
+        <p>{{ photoUploading ? 'Загружаем фото…' : profile.location?.city }}</p>
       </div>
     </div>
-
-    <!-- Basic Info -->
-    <div class="card mb-16">
-      <div class="section-title">Basic Info</div>
-
-      <div class="form-group">
-        <label>First Name</label>
-        <input type="text" class="form-control" [(ngModel)]="profile.first_name" name="first_name" placeholder="Your name" />
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Birth Date</label>
-          <input type="date" class="form-control" [(ngModel)]="profile.birth_date" name="birth_date" />
-        </div>
-        <div class="form-group">
-          <label>Gender</label>
-          <select class="form-control" [(ngModel)]="profile.gender" name="gender">
-            <option value="">— Select —</option>
-            <option *ngFor="let g of genders" [value]="g">{{ g | titlecase }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Interested In</label>
-        <div class="interests-grid">
-          <button
-            type="button"
-            class="interest-chip"
-            *ngFor="let opt of interestedInOptions"
-            [class.selected]="isInterestedInSelected(opt)"
-            (click)="toggleInterestedIn(opt)"
-          >
-            {{ formatOption(opt) }}
-          </button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>About Me</label>
-        <textarea
-          class="form-control"
-          [(ngModel)]="profile.about_me"
-          name="about_me"
-          rows="3"
-          placeholder="Tell others something magical about yourself..."
-          maxlength="2000"
-        ></textarea>
-      </div>
-    </div>
-
-    <!-- Work & Education -->
-    <div class="card mb-16">
-      <div class="section-title">Work & Education</div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Job Title</label>
-          <input type="text" class="form-control" [(ngModel)]="profile.job_title" name="job_title" placeholder="Software Engineer" />
-        </div>
-        <div class="form-group">
-          <label>Company</label>
-          <input type="text" class="form-control" [(ngModel)]="profile.company" name="company" placeholder="Winx Inc." />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>School / University</label>
-        <input type="text" class="form-control" [(ngModel)]="profile.school" name="school" placeholder="KBTU" />
-      </div>
-    </div>
-
-    <!-- Location -->
-    <div class="card mb-16">
-      <div class="section-title">Location</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>City</label>
-          <input type="text" class="form-control" [(ngModel)]="profile.location!.city" name="city" placeholder="Almaty" required />
-        </div>
-        <div class="form-group">
-          <label>Country</label>
-          <input type="text" class="form-control" [(ngModel)]="profile.location!.country" name="country" placeholder="Kazakhstan" />
-        </div>
-      </div>
-      <button type="button" class="btn btn-outline" (click)="detectLocation()">
-        📍 Detect My Location
+    <p *ngIf="!profile.first_name" class="setup-note">
+      Начните с основного — так вас узнают другие.
+    </p>
+    <div class="settings-list">
+      <button class="setting-row" (click)="edit('basics')">
+        <app-icon name="user" /><span
+          ><strong>Основное</strong
+          ><small>{{ profile.first_name || 'Имя, возраст и город' }}</small></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
+      <button class="setting-row" (click)="edit('about')">
+        <app-icon name="book" /><span
+          ><strong>О себе</strong><small>{{ profile.about_me || 'Рассказать о себе' }}</small></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
+      <button class="setting-row" (click)="edit('preferences')">
+        <app-icon name="heart" /><span
+          ><strong>Предпочтения</strong
+          ><small>{{
+            profile.looking_for ? formatOption(profile.looking_for) : 'Кого хотите встретить'
+          }}</small></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
+      <button class="setting-row" (click)="edit('interests')">
+        <app-icon name="plus" /><span
+          ><strong>Интересы</strong><small>{{ interestSummary }}</small></span
+        ><app-icon name="chevron" [size]="17" />
       </button>
     </div>
-
-    <!-- Looking For -->
-    <div class="card mb-16">
-      <div class="section-title">Looking For</div>
-      <div class="form-group">
-        <label>Relationship Goal</label>
-        <select class="form-control" [(ngModel)]="profile.looking_for" name="looking_for">
-          <option value="">— Select —</option>
-          <option *ngFor="let opt of lookingForOptions" [value]="opt">
-            {{ formatOption(opt) }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Interests -->
-    <div class="card mb-16" *ngIf="interests.length > 0">
-      <div class="section-title">Interests <span class="interest-count">({{ profile.interest_ids?.length || 0 }}/20)</span></div>
-      <div class="interests-grid">
+    <button class="logout-link" (click)="auth.logout()">Выйти из аккаунта</button>
+  </ng-container>
+  <app-sheet
+    *ngIf="editing as section"
+    [title]="titles[section]"
+    [locked]="saving"
+    (closed)="cancel()"
+  >
+    <form class="sheet-form" (ngSubmit)="save()" #form="ngForm">
+      <div class="sheet-body">
+        <ng-container *ngIf="section === 'basics'">
+          <div class="form-group">
+            <label for="first-name">Имя</label
+            ><input
+              id="first-name"
+              class="form-control"
+              [(ngModel)]="profile.first_name"
+              name="first_name"
+              autocomplete="given-name"
+            />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="birth-date">Дата рождения</label
+              ><input
+                id="birth-date"
+                type="date"
+                class="form-control"
+                [(ngModel)]="profile.birth_date"
+                name="birth_date"
+              />
+            </div>
+            <div class="form-group">
+              <label for="gender">Пол</label
+              ><select id="gender" class="form-control" [(ngModel)]="profile.gender" name="gender">
+                <option value="">Не указан</option>
+                <option value="man">Мужской</option>
+                <option value="woman">Женский</option>
+                <option value="non_binary">Небинарный</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="country">Страна</label
+            ><input
+              id="country"
+              class="form-control"
+              [(ngModel)]="profile.location!.country"
+              name="country"
+            />
+          </div>
+        </ng-container>
+        <div class="form-group" *ngIf="section === 'basics' || !profile.location?.city">
+          <label for="city">Город</label
+          ><input
+            id="city"
+            class="form-control"
+            [(ngModel)]="profile.location!.city"
+            name="city"
+            required
+            placeholder="Например, Алматы"
+          />
+        </div>
         <button
+          *ngIf="section === 'basics'"
+          class="btn btn-ghost location-action"
           type="button"
-          class="interest-chip"
-          *ngFor="let interest of interests"
-          [class.selected]="isInterestSelected(interest.id)"
-          (click)="toggleInterest(interest.id)"
+          (click)="detectLocation()"
         >
-          {{ interest.name }}
+          <app-icon name="pin" [size]="16" />Определить город
+        </button>
+        <ng-container *ngIf="section === 'about'">
+          <div class="form-group">
+            <label for="about-me">О себе</label
+            ><textarea
+              id="about-me"
+              class="form-control"
+              [(ngModel)]="profile.about_me"
+              name="about_me"
+              rows="3"
+              maxlength="2000"
+            ></textarea>
+          </div>
+          <details class="more-fields">
+            <summary>Работа и учёба</summary>
+            <div class="form-group">
+              <label for="job-title">Занятие</label
+              ><input
+                id="job-title"
+                class="form-control"
+                [(ngModel)]="profile.job_title"
+                name="job_title"
+              />
+            </div>
+            <div class="form-group">
+              <label for="company">Компания</label
+              ><input
+                id="company"
+                class="form-control"
+                [(ngModel)]="profile.company"
+                name="company"
+              />
+            </div>
+            <div class="form-group">
+              <label for="school">Учебное заведение</label
+              ><input id="school" class="form-control" [(ngModel)]="profile.school" name="school" />
+            </div>
+          </details>
+        </ng-container>
+        <ng-container *ngIf="section === 'preferences'">
+          <div class="form-group">
+            <span class="field-label">Кого хотите встретить?</span>
+            <div class="interests-grid">
+              <button
+                class="interest-chip"
+                type="button"
+                *ngFor="let opt of interestedInOptions"
+                [class.selected]="isInterestedInSelected(opt)"
+                [attr.aria-pressed]="isInterestedInSelected(opt)"
+                (click)="toggleInterestedIn(opt)"
+              >
+                {{ formatOption(opt) }}
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="relationship-goal">Что ищете?</label
+            ><select
+              id="relationship-goal"
+              class="form-control"
+              [(ngModel)]="profile.looking_for"
+              name="looking_for"
+            >
+              <option value="">Не указано</option>
+              <option *ngFor="let opt of lookingForOptions" [value]="opt">
+                {{ formatOption(opt) }}
+              </option>
+            </select>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="section === 'interests'"
+          ><p class="field-note interest-count">{{ profile.interest_ids?.length || 0 }} из 20</p>
+          <div class="interests-grid">
+            <button
+              class="interest-chip"
+              type="button"
+              *ngFor="let interest of interests"
+              [class.selected]="isInterestSelected(interest.id)"
+              [attr.aria-pressed]="isInterestSelected(interest.id)"
+              (click)="toggleInterest(interest.id)"
+            >
+              {{ interest.name }}
+            </button>
+          </div></ng-container
+        >
+        <p *ngIf="saveError" class="error-msg" role="alert">{{ saveError }}</p>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-outline" type="button" [disabled]="saving" (click)="cancel()">
+          Отмена</button
+        ><button class="btn btn-primary" type="submit" [disabled]="saving || !form.valid">
+          {{ saving ? 'Сохранение…' : 'Сохранить' }}
         </button>
       </div>
-    </div>
-
-    <!-- Save -->
-    <div *ngIf="saveError" class="error-msg">{{ saveError }}</div>
-    <div *ngIf="saveSuccess" class="success-msg">✨ Profile saved successfully!</div>
-
-    <button type="submit" class="btn btn-primary w-full" [disabled]="saving">
-      {{ saving ? 'Saving...' : 'Save Profile ✨' }}
-    </button>
-  </form>
-</div>
+    </form>
+  </app-sheet>
+</main>

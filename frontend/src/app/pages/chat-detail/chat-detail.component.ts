@@ -1,16 +1,23 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  AfterViewChecked,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ChatService, Message } from '../../core/services/chat.service';
-import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-chat-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './chat-detail.component.html',
   styleUrl: './chat-detail.component.css',
 })
@@ -28,7 +35,6 @@ export class ChatDetailComponent implements OnInit, OnDestroy, AfterViewChecked 
   constructor(
     private route: ActivatedRoute,
     private chatService: ChatService,
-    private auth: AuthService,
     private profileService: ProfileService,
   ) {}
 
@@ -47,10 +53,13 @@ export class ChatDetailComponent implements OnInit, OnDestroy, AfterViewChecked 
 
     this.loadMessages();
 
-    const token = this.auth.getToken() ?? '';
-    this.wsSub = this.chatService.connectWs(token).subscribe({
+    this.wsSub = this.chatService.connectWs().subscribe({
       next: (msg) => {
-        if (msg.type === 'message' && Number(msg.chat_id) === this.chatId && Number(msg.sender_id) !== this.myId) {
+        if (
+          msg.type === 'message' &&
+          Number(msg.chat_id) === this.chatId &&
+          Number(msg.sender_id) !== this.myId
+        ) {
           this.messages.push({
             id: Date.now(),
             chat_id: this.chatId,

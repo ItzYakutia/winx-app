@@ -4,11 +4,12 @@ import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ChatService, Chat } from '../../core/services/chat.service';
 import { MatchService } from '../../core/services/match.service';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-chats',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, IconComponent],
   templateUrl: './chats.component.html',
   styleUrl: './chats.component.css',
 })
@@ -40,7 +41,7 @@ export class ChatsComponent implements OnInit {
   }
 
   getChatName(chat: Chat): string {
-    return this.matchNameMap[chat.match_id] || 'Chat';
+    return this.matchNameMap[chat.match_id] || 'Чат';
   }
 
   getInitial(chat: Chat): string {

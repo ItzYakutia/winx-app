@@ -49,9 +49,12 @@ func (h *Hub) Register(c *Client) {
 	h.clients[c.userID] = c
 }
 
-func (h *Hub) Unregister(userID int64) {
+func (h *Hub) Unregister(userID int64, expected ...*Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	if len(expected) > 0 && h.clients[userID] != expected[0] {
+		return
+	}
 	delete(h.clients, userID)
 }
 
@@ -89,7 +92,7 @@ const (
 // readPump reads incoming messages from the WebSocket connection.
 func (c *Client) readPump(ctx context.Context, msgSvc msgService.Service, chatSvc chatFinder) {
 	defer func() {
-		c.hub.Unregister(c.userID)
+		c.hub.Unregister(c.userID, c)
 		c.conn.Close()
 	}()
 
@@ -130,6 +133,8 @@ func (c *Client) readPump(ctx context.Context, msgSvc msgService.Service, chatSv
 				c.sendError("chat not found")
 			} else if errors.Is(err, msgService.ErrNotMember) {
 				c.sendError("you are not a member of this chat")
+			} else if errors.Is(err, msgService.ErrChatClosed) {
+				c.sendError("chat is closed")
 			} else {
 				c.sendError("failed to send message")
 				errorhandler.FailOnError(err, "ws create message")

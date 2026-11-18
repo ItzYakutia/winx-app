@@ -1,14 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { RecommendationService, RecommendationProfile } from '../../core/services/recommendation.service';
+import {
+  RecommendationService,
+  RecommendationProfile,
+} from '../../core/services/recommendation.service';
 import { MatchService } from '../../core/services/match.service';
+import { IconComponent } from '../../shared/icon/icon.component';
+import { optionName } from '../../shared/text';
+import { SwipeCardDirective, SwipeDirection } from '../../shared/swipe-card/swipe-card.directive';
 
 type SwipeState = 'idle' | 'left' | 'right';
 
 @Component({
   selector: 'app-discover',
   standalone: true,
-  imports: [CommonModule, DecimalPipe],
+  imports: [CommonModule, DecimalPipe, IconComponent, SwipeCardDirective],
   templateUrl: './discover.component.html',
   styleUrl: './discover.component.css',
 })
@@ -18,10 +24,22 @@ export class DiscoverComponent implements OnInit {
   loading = true;
   swipeState: SwipeState = 'idle';
   matchMessage = '';
+  detailsOpen = false;
+  dragX = 0;
+  get dragTransform(): string | null {
+    return this.swipeState === 'idle' && this.dragX
+      ? 'translateX(' + this.dragX + 'px) rotate(' + this.dragX / 22 + 'deg)'
+      : null;
+  }
+  swipe(direction: SwipeDirection): void {
+    direction === 'right' ? this.swipeRight() : this.swipeLeft();
+  }
+  optionName = optionName;
+  private failedPhotos = new Set<string>();
 
   constructor(
     private recommendations: RecommendationService,
-    private matchService: MatchService
+    private matchService: MatchService,
   ) {}
 
   ngOnInit(): void {
@@ -66,7 +84,7 @@ export class DiscoverComponent implements OnInit {
     this.matchService.swipeRight(profile.user_id).subscribe({
       next: (res) => {
         if (res.message?.toLowerCase().includes('match')) {
-          this.matchMessage = `It's a match with ${name}! 💕`;
+          this.matchMessage = `Взаимная симпатия с ${name}`;
           setTimeout(() => (this.matchMessage = ''), 3000);
         }
       },
@@ -76,6 +94,7 @@ export class DiscoverComponent implements OnInit {
   }
 
   private next(): void {
+    this.detailsOpen = false;
     this.currentIndex++;
     this.swipeState = 'idle';
     if (this.currentIndex >= this.profiles.length) {
@@ -85,6 +104,11 @@ export class DiscoverComponent implements OnInit {
   }
 
   getPhotoUrl(profile: RecommendationProfile | null): string {
-    return profile?.photo_url || '';
+    const url = profile?.photo_url || '';
+    return this.failedPhotos.has(url) ? '' : url;
+  }
+
+  photoFailed(url: string): void {
+    this.failedPhotos.add(url);
   }
 }

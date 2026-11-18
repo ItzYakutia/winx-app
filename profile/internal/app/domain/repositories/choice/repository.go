@@ -40,19 +40,34 @@ func (r *repository) HasCourse(ctx context.Context, userID, courseID int64) (boo
 }
 
 func (r *repository) Upsert(ctx context.Context, userID, candidateID, courseID int64, choice string) (bool, error) {
-	res := r.db.WithContext(ctx).Exec(
-		`INSERT INTO course_choices (user_id, candidate_id, course_id, choice)
+	stored := false
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		res := tx.Exec(
+			`INSERT INTO course_choices (user_id, candidate_id, course_id, choice)
 		 SELECT ?, ?, ?, ?
 		  WHERE EXISTS (SELECT 1 FROM user_courses WHERE user_id = ? AND course_id = ?)
 		 ON CONFLICT (user_id, candidate_id, course_id) DO UPDATE
 		   SET choice = EXCLUDED.choice, updated_at = NOW()`,
-		userID, candidateID, courseID, choice, candidateID, courseID,
-	)
-	if res.Error != nil {
-		return false, fmt.Errorf("upsert course choice: %w", res.Error)
-	}
+			userID, candidateID, courseID, choice, candidateID, courseID,
+		)
+		if res.Error != nil {
+			return fmt.Errorf("upsert course choice: %w", res.Error)
+		}
 
-	return res.RowsAffected > 0, nil
+		stored = res.RowsAffected > 0
+		if stored && choice == "like" {
+			first, second := userID, candidateID
+			if first > second {
+				first, second = second, first
+			}
+			return tx.Exec(`INSERT INTO chats(course_id,user_one_id,user_two_id,initiated_by)
+		 VALUES(?,?,?,?)
+		 ON CONFLICT(course_id,user_one_id,user_two_id) DO NOTHING`,
+				courseID, first, second, userID).Error
+		}
+		return nil
+	})
+	return stored, err
 }
 
 type row struct {

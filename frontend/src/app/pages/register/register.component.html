@@ -1,69 +1,57 @@
-<div class="auth-page">
-  <div class="auth-decoration">
-    <span class="star s1">✦</span>
-    <span class="star s2">✧</span>
-    <span class="star s3">✦</span>
-    <span class="star s4">✧</span>
-  </div>
-
-  <div class="auth-card">
-    <div class="auth-logo">
-      <span class="logo-icon">🌸</span>
-      <h1 class="logo-text">Join Winx</h1>
-      <p class="logo-sub">Start your magical journey</p>
+<main class="auth-page">
+  <a class="auth-brand" routerLink="/login" aria-label="Winx">winx<span>.</span></a>
+  <section class="auth-card">
+    <h1>Регистрация</h1>
+    <div *ngIf="success" class="success-msg" role="status">
+      {{ loading ? 'Аккаунт создан. Входим…' : 'Аккаунт создан.' }}
     </div>
-
-    <div *ngIf="success" class="success-msg">
-      🎉 Account created! Redirecting to login...
-    </div>
-    <div *ngIf="error" class="error-msg">{{ error }}</div>
-
+    <div *ngIf="error" class="error-msg" role="alert">{{ error }}</div>
     <form *ngIf="!success" (ngSubmit)="submit()" #form="ngForm">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input
+        <label for="email">Эл. почта</label
+        ><input
           id="email"
           type="email"
           class="form-control"
-          placeholder="your@email.com"
+          placeholder="you@example.com"
           [(ngModel)]="email"
           name="email"
+          autocomplete="email"
           required
         />
       </div>
-
       <div class="form-group">
-        <label for="password">Password</label>
-        <input
+        <label for="password">Пароль</label
+        ><input
           id="password"
           type="password"
           class="form-control"
-          placeholder="••••••••"
+          placeholder="От 8 символов"
           [(ngModel)]="password"
           name="password"
+          autocomplete="new-password"
           required
           minlength="8"
         />
       </div>
-
-      <label class="consent-field">
-        <input
+      <label class="consent-field"
+        ><input
           type="checkbox"
           [(ngModel)]="consentAccepted"
           name="consentAccepted"
           required
-        />
-        <span>I agree to the processing of my account and profile data to use Winx.</span>
-      </label>
-
-      <button type="submit" class="btn btn-primary w-full" [disabled]="loading || !form.valid || !consentAccepted">
-        {{ loading ? 'Creating account...' : 'Create Account ✨' }}
+        /><span>Согласен на обработку данных аккаунта и профиля.</span></label
+      >
+      <button
+        type="submit"
+        class="btn btn-primary w-full"
+        [disabled]="loading || !form.valid || !consentAccepted"
+      >
+        {{ loading ? 'Создаём аккаунт…' : 'Создать аккаунт' }}
       </button>
     </form>
-
     <p class="auth-footer">
-      Already have an account?
-      <a routerLink="/login">Sign in</a>
+      Уже есть аккаунт?<a routerLink="/login" [queryParams]="{ returnUrl: returnUrl }">Войти</a>
     </p>
-  </div>
-</div>
+  </section>
+</main>

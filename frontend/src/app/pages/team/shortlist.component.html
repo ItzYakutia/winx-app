@@ -1,14 +1,93 @@
-<main class="team-page">
-  <header class="team-header"><div><p class="eyebrow">Team Mode · Your shortlist</p><h1>People you’d work with.</h1><p class="intro">Saved classmates for each course. Agree on a team through your usual channel, then share a join code.</p></div><a routerLink="/team/teams" class="btn btn-primary">Build a team →</a></header>
-  <app-course-picker [disabled]="!!pendingId" (courseChange)="selectCourse($event)"></app-course-picker>
-  <div *ngIf="error" class="error-msg" role="alert">{{ error }} <button class="btn btn-ghost" (click)="load()" [disabled]="loading">Retry</button></div>
-  <div *ngIf="loading" class="spinner" aria-label="Loading saved classmates"></div>
+<main class="team-page people-page">
+  <header class="screen-heading"><h1>Найти тиммейтов</h1></header>
+  <app-course-picker
+    [disabled]="!!pendingId"
+    (courseChange)="selectCourse($event)"
+  ></app-course-picker>
+  <nav class="local-tabs" aria-label="Кандидаты">
+    <a routerLink="/team/discover">Люди</a
+    ><a routerLink="/team/shortlist" class="selected" aria-current="page">Сохранённые</a>
+  </nav>
+  <div *ngIf="error && !selected" class="error-msg" role="alert">
+    {{ error
+    }}<button class="btn btn-ghost" (click)="load()" [disabled]="loading">Повторить</button>
+  </div>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка сохранённых"></div>
   <ng-container *ngIf="!loading">
-    <article class="card list-card" *ngFor="let candidate of candidates">
-      <div class="initials" aria-hidden="true">☆</div><div class="content"><h3>{{ candidate.name || 'Student #' + candidate.user_id }}</h3><p class="role">{{ candidate.preferred_role || 'Open to different roles' }}</p><div class="skill-list"><span *ngFor="let skill of candidate.skills" class="skill">{{ skill }}</span></div></div>
-      <button class="btn btn-ghost" (click)="remove(candidate)" [disabled]="!!pendingId" [attr.aria-label]="'Remove ' + candidate.name + ' from Saved'">{{ pendingId === candidate.user_id ? 'Removing…' : 'Remove' }}</button>
-    </article>
-    <div class="pager" *ngIf="offset > 0 || candidates.length === 50"><button class="btn btn-outline" [disabled]="offset === 0 || !!pendingId" (click)="load(offset - 50)">Previous</button><span class="field-note">Page {{ offset / 50 + 1 }}</span><button class="btn btn-outline" [disabled]="candidates.length < 50 || !!pendingId" (click)="load(offset + 50)">Next</button></div>
-    <div *ngIf="course && !candidates.length && !error" class="card empty-state"><div class="emoji" aria-hidden="true">☆</div><h3>Your shortlist starts here</h3><p>Save a classmate in {{ course.code }} to find them here later. Saving someone doesn’t notify them or add them to a team.</p><a routerLink="/team/discover" class="btn btn-primary mt-24">Find classmates</a></div>
+    <div class="people-list" *ngIf="candidates.length">
+      <article class="candidate-row" *ngFor="let candidate of candidates">
+        <button
+          class="person-open"
+          type="button"
+          (click)="selected = candidate"
+          [attr.aria-label]="'Открыть профиль: ' + candidate.name"
+        >
+          <span class="initials" aria-hidden="true">{{ candidate.name.charAt(0) || '?' }}</span
+          ><span class="person-info"
+            ><strong>{{ candidate.name || 'Студент' }}</strong
+            ><span *ngIf="candidate.preferred_role" class="role">{{
+              candidate.preferred_role
+            }}</span
+            ><span *ngIf="candidate.skills.length" class="person-skills"
+              >{{ candidate.skills.slice(0, 2).join(' · ')
+              }}{{ candidate.skills.length > 2 ? ' +' + (candidate.skills.length - 2) : '' }}</span
+            ></span
+          >
+        </button>
+        <button
+          class="icon-button save-person"
+          type="button"
+          [disabled]="!!pendingId"
+          (click)="remove(candidate)"
+          [attr.aria-label]="'Убрать из сохранённых: ' + candidate.name"
+        >
+          <app-icon name="close" [size]="20" />
+        </button>
+      </article>
+    </div>
+    <div class="pager" *ngIf="offset > 0 || candidates.length === 50">
+      <button
+        class="btn btn-outline"
+        [disabled]="offset === 0 || !!pendingId"
+        (click)="load(offset - 50)"
+      >
+        Назад</button
+      ><span class="field-note">{{ offset / 50 + 1 }}</span
+      ><button
+        class="btn btn-outline"
+        [disabled]="candidates.length < 50 || !!pendingId"
+        (click)="load(offset + 50)"
+      >
+        Далее
+      </button>
+    </div>
+    <section *ngIf="course && !candidates.length && !error" class="empty-state">
+      <h3>Пока никого не сохранили</h3>
+      <p>Здесь будут люди, с которыми хотите работать.</p>
+      <a routerLink="/team/discover" class="btn btn-primary mt-24">Найти людей</a>
+    </section>
   </ng-container>
+  <app-sheet
+    *ngIf="selected"
+    [title]="selected.name || 'Студент'"
+    [locked]="!!pendingId"
+    (closed)="selected = null"
+  >
+    <div class="sheet-body">
+      <p *ngIf="selected.preferred_role" class="detail-role">{{ selected.preferred_role }}</p>
+      <div *ngIf="selected.skills.length" class="skill-list">
+        <span class="skill" *ngFor="let skill of selected.skills">{{ skill }}</span>
+      </div>
+      <p *ngIf="!selected.skills.length && !selected.preferred_role" class="muted">
+        Профиль пока не заполнен.
+      </p>
+      <p *ngIf="error" class="error-msg mt-16" role="alert">{{ error }}</p>
+    </div>
+    <div class="sheet-actions">
+      <a class="btn btn-primary" routerLink="/team/teams">Моя команда</a
+      ><button class="btn btn-outline" [disabled]="!!pendingId" (click)="remove(selected)">
+        Убрать
+      </button>
+    </div>
+  </app-sheet>
 </main>

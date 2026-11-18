@@ -187,3 +187,7 @@ docker compose exec auth-winx go run cmd/migration/main.go -cmd reset
 ```
 
 If you already had an older local Postgres volume before switching to PostGIS, recreate the DB container/volume before running `profile` migrations, otherwise `CREATE EXTENSION postgis` can fail or the geography type may be missing.
+
+## Server deployment
+
+See [the Winx deployment guide](docs/deploy.md) for `winx.emilkalimullin.com`, local Linux builds and server operations.

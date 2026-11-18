@@ -1,0 +1,199 @@
+name: winx
+
+x-logging: &logging
+  driver: local
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-go: &go
+  image: winx-runtime:${WINX_RELEASE:?set a release}
+  user: "${WINX_UID}:${WINX_GID}"
+  restart: unless-stopped
+  init: true
+  mem_limit: 128m
+  environment:
+    GOMAXPROCS: "2"
+    GOMEMLIMIT: 96MiB
+    AWS_EC2_METADATA_DISABLED: "true"
+  logging: *logging
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    redis-winx:
+      condition: service_healthy
+    kafka-winx:
+      condition: service_healthy
+    mongo-winx:
+      condition: service_healthy
+
+services:
+  frontend-winx:
+    image: winx-frontend:${WINX_RELEASE:?set a release}
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "127.0.0.1:14200:80"
+    networks:
+      default:
+      proxy:
+        aliases:
+          - winx-frontend
+    logging: *logging
+    depends_on:
+      - api-gateway-winx
+      - chat-winx
+
+  api-gateway-winx:
+    <<: *go
+    command: ["/app/bin/api-gateway"]
+    volumes:
+      - ./config/api-gateway.yaml:/app/config.dev.yaml:ro
+    environment:
+      PILOT_MODE: "false"
+      GOMAXPROCS: "2"
+      GOMEMLIMIT: 96MiB
+
+  auth-winx:
+    <<: *go
+    command: ["/app/bin/auth"]
+    volumes:
+      - ./config/auth.yaml:/app/config.dev.yaml:ro
+
+  notification-winx:
+    <<: *go
+    command: ["/app/bin/notification"]
+    volumes:
+      - ./config/notification.yaml:/app/config.dev.yaml:ro
+
+  profile-winx:
+    <<: *go
+    command: ["/app/bin/profile"]
+    volumes:
+      - ./config/profile.yaml:/app/config.dev.yaml:ro
+
+  match-winx:
+    <<: *go
+    command: ["/app/bin/match"]
+    volumes:
+      - ./config/match.yaml:/app/config.dev.yaml:ro
+
+  recommendation-winx:
+    <<: *go
+    command: ["/app/bin/recommendation"]
+    volumes:
+      - ./config/recommendation.yaml:/app/config.dev.yaml:ro
+
+  chat-winx:
+    <<: *go
+    command: ["/app/bin/chat"]
+    volumes:
+      - ./config/chat.yaml:/app/config.dev.yaml:ro
+
+  migrate:
+    image: winx-runtime:${WINX_RELEASE:?set a release}
+    user: "${WINX_UID}:${WINX_GID}"
+    command: ["/app/bin/migrate"]
+    restart: "no"
+    mem_limit: 128m
+    environment:
+      DATABASE_URL: postgresql://winx:${POSTGRES_PASSWORD}@postgres-winx:5432/winx-db?sslmode=disable
+      GOMAXPROCS: "2"
+      GOMEMLIMIT: 96MiB
+    logging: *logging
+    depends_on:
+      postgres-winx:
+        condition: service_healthy
+
+  postgres-winx:
+    image: postgis/postgis:16-3.5-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    shm_size: 64m
+    environment:
+      POSTGRES_DB: winx-db
+      POSTGRES_USER: winx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set a database password}
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=80", "-c", "work_mem=2MB"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U winx -d winx-db"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    logging: *logging
+
+  mongo-winx:
+    image: mongo:7
+    restart: unless-stopped
+    mem_limit: 512m
+    command: ["mongod", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand({ping:1}).ok ? 0 : 2)"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+    logging: *logging
+
+  redis-winx:
+    image: redis:7-alpine
+    restart: unless-stopped
+    mem_limit: 64m
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "32mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging: *logging
+
+  kafka-winx:
+    image: apache/kafka:4.0.0
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-winx:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-winx:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: "1"
+      KAFKA_LOG_RETENTION_HOURS: "24"
+      KAFKA_LOG_RETENTION_BYTES: "268435456"
+      KAFKA_LOG_SEGMENT_BYTES: "33554432"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx256m
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "KAFKA_HEAP_OPTS='-Xms16m -Xmx64m' /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      start_period: 30s
+      retries: 20
+    logging: *logging
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  kafka_data:
+
+networks:
+  proxy:
+    external: true
+    name: proxy

@@ -1,34 +1,103 @@
-<main class="team-page">
-  <header class="team-header">
-    <div><p class="eyebrow">Team Mode · Your starting point</p><h1>Your academic profile</h1><p class="intro">What are you studying, and what do you bring to a team?</p></div>
-    <a routerLink="/team/discover" class="btn btn-outline">Find teammates →</a>
+<main class="team-page profile-overview">
+  <header class="screen-heading">
+    <h1>Профиль</h1>
+    <span class="inline-status" role="status" *ngIf="success">{{ success }}</span>
   </header>
-  <div *ngIf="loading" class="spinner" aria-label="Loading academic profile"></div>
-  <div *ngIf="error" class="error-msg" role="alert">{{ error }} <button *ngIf="!courses.length" class="btn btn-ghost" (click)="load()">Retry</button></div>
-  <div *ngIf="success" class="success-message" role="status">{{ success }}</div>
-  <div class="profile-layout" *ngIf="!loading && courses.length">
-    <form (ngSubmit)="save()" #form="ngForm">
-      <fieldset [disabled]="saving" style="border: 0; min-width: 0;">
-        <section class="card">
-          <h2>01 · Your courses</h2><p class="section-copy">Select the subjects you’re taking. You’ll discover classmates separately for each course.</p>
-          <div class="course-grid">
-            <label *ngFor="let course of courses" class="course-option" [class.selected]="selectedIds.includes(course.id)">
-              <input type="checkbox" [checked]="selectedIds.includes(course.id)" (change)="toggleCourse(course.id)" [attr.aria-label]="course.title" />
-              <div><strong>{{ course.code }}</strong><span>{{ course.title }}</span></div>
-            </label>
-          </div>
-          <p class="field-note">{{ selectedIds.length }} selected · Course selection is self-reported.</p>
-        </section>
-        <section class="card">
-          <h2>02 · Your contribution</h2><p class="section-copy">Give classmates a feel for how you like to work. Both fields are optional.</p>
-          <div class="form-group"><label for="skills">Skills</label><textarea id="skills" class="form-control" [(ngModel)]="skillsText" name="skills" placeholder="Go, SQL, Figma, presentations"></textarea><p class="field-note">Separate skills with commas. Up to 20 skills, 30 characters each.</p></div>
-          <div class="skill-list"><span class="skill" *ngFor="let skill of skills">{{ skill }}</span></div>
-          <p *ngIf="skillsError" class="error-msg" role="alert">{{ skillsError }}</p>
-          <div class="form-group"><label for="preferred-role">Preferred role</label><input id="preferred-role" class="form-control" [(ngModel)]="role" name="role" maxlength="50" placeholder="e.g. Backend developer or project coordinator" list="team-roles" /><datalist id="team-roles"><option>Backend developer</option><option>Frontend developer</option><option>Designer</option><option>QA engineer</option><option>Project coordinator</option><option>Researcher</option></datalist></div>
-        </section>
-        <button class="btn btn-primary w-full" type="submit" [disabled]="saving || !!skillsError || !form.valid">{{ saving ? 'Saving…' : 'Save academic profile' }}</button>
-      </fieldset>
-    </form>
-    <aside class="aside"><h3>A team that fits you</h3><p>1. Pick your courses and add your skills.</p><p>2. Save classmates you’d like to work with.</p><p>3. Agree on a team and share its join code.</p><p>Your academic cards show your name, skills and role. Social photos and dating preferences stay in Social.</p></aside>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка профиля"></div>
+  <div *ngIf="error && !editing" class="error-msg" role="alert">
+    {{ error }}<button class="btn btn-ghost" (click)="load()">Повторить</button>
   </div>
+  <ng-container *ngIf="!loading && ready">
+    <div class="profile-identity">
+      <span class="profile-initial">{{ name.charAt(0) }}</span>
+      <div>
+        <h2>{{ name }}</h2>
+        <p>{{ role || 'Роль не указана' }}</p>
+      </div>
+    </div>
+    <p *ngIf="!selectedIds.length" class="setup-note">
+      Выберите предметы, чтобы найти однокурсников.
+    </p>
+    <div class="settings-list">
+      <button class="setting-row" (click)="edit('courses')">
+        <app-icon name="book" /><span
+          ><strong>Предметы</strong><small>{{ selectedNames }}</small></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
+      <button class="setting-row" (click)="edit('skills')">
+        <app-icon name="plus" /><span
+          ><strong>Навыки</strong
+          ><small
+            >{{ skills.slice(0, 3).join(', ') || 'Добавить'
+            }}{{ skills.length > 3 ? ' +' + (skills.length - 3) : '' }}</small
+          ></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
+      <button class="setting-row" (click)="edit('role')">
+        <app-icon name="users" /><span
+          ><strong>Роль в команде</strong><small>{{ role || 'Выбрать' }}</small></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
+    </div>
+  </ng-container>
+  <button class="logout-link" (click)="auth.logout()">Выйти из аккаунта</button>
+  <app-sheet
+    *ngIf="editing as section"
+    [title]="titles[section]"
+    [locked]="saving"
+    (closed)="cancel()"
+  >
+    <form class="sheet-form" (ngSubmit)="save()" #form="ngForm">
+      <div class="sheet-body">
+        <div *ngIf="section === 'courses'" class="course-options">
+          <label
+            *ngFor="let course of courses"
+            class="course-option"
+            [class.selected]="selectedIds.includes(course.id)"
+            ><input
+              type="checkbox"
+              [checked]="selectedIds.includes(course.id)"
+              (change)="toggleCourse(course.id)"
+              [attr.aria-label]="label(course.code)"
+            /><span>{{ label(course.code) }}</span></label
+          >
+        </div>
+        <div *ngIf="section === 'skills'" class="form-group">
+          <label for="skills">Ваши навыки</label
+          ><textarea
+            id="skills"
+            class="form-control"
+            [(ngModel)]="skillsText"
+            name="skills"
+            placeholder="Go, SQL, Figma"
+          ></textarea>
+          <p class="field-note">Перечислите через запятую.</p>
+          <p class="error-msg" *ngIf="skillsError" role="alert">{{ skillsError }}</p>
+        </div>
+        <div *ngIf="section === 'role'" class="form-group">
+          <label for="preferred-role">Чем хотите заниматься?</label
+          ><input
+            id="preferred-role"
+            class="form-control"
+            [(ngModel)]="role"
+            name="role"
+            maxlength="50"
+            placeholder="Например, бэкенд-разработкой"
+          />
+        </div>
+        <p *ngIf="error" class="error-msg" role="alert">{{ error }}</p>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-outline" type="button" [disabled]="saving" (click)="cancel()">
+          Отмена</button
+        ><button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="saving || (section === 'skills' && !!skillsError) || !form.valid"
+        >
+          {{ saving ? 'Сохранение…' : 'Сохранить' }}
+        </button>
+      </div>
+    </form>
+  </app-sheet>
 </main>

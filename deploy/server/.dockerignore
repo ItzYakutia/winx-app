@@ -1,0 +1,12 @@
+*
+!Dockerfile
+!frontend.Dockerfile
+!bin/
+!bin/**
+!migrations/
+!migrations/**
+!swagger/
+!swagger/**
+!frontend/
+!frontend/**
+!nginx.conf

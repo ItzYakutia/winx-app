@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatchService, Match } from '../../core/services/match.service';
 import { ChatService } from '../../core/services/chat.service';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-matches',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, IconComponent],
   templateUrl: './matches.component.html',
   styleUrl: './matches.component.css',
 })
@@ -55,10 +56,10 @@ export class MatchesComponent implements OnInit {
   }
 
   unmatch(match: Match): void {
-    if (!confirm(`Unmatch with ${match.name || 'this person'}?`)) return;
+    if (!confirm(`Убрать совпадение с ${match.name || 'этим человеком'}?`)) return;
     this.matchService.delete(match.id).subscribe({
       next: () => {
-        this.matches = this.matches.filter(m => m.id !== match.id);
+        this.matches = this.matches.filter((m) => m.id !== match.id);
       },
     });
   }

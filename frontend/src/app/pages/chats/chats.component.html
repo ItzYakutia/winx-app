@@ -1,31 +1,30 @@
-<div class="page" style="padding-top: 84px;">
-  <div class="page-header">
-    <h2>Chats 💬</h2>
-    <p>Your conversations</p>
-  </div>
-
-  <div *ngIf="loading" class="spinner"></div>
-
-  <div *ngIf="!loading && chats.length === 0" class="empty-state">
-    <div class="emoji">💬</div>
-    <h3>No chats yet</h3>
-    <p>Match with someone to start chatting!</p>
-  </div>
-
-  <div *ngIf="!loading" class="chats-list">
+<main class="page">
+  <header class="screen-heading">
+    <h1>Общение</h1>
+    <a class="icon-button" routerLink="/notifications" aria-label="Уведомления"
+      ><app-icon name="bell" [size]="21"
+    /></a>
+  </header>
+  <nav class="local-tabs" aria-label="Общение">
+    <a routerLink="/chats" class="selected" aria-current="page">Чаты</a
+    ><a routerLink="/matches">Совпадения</a>
+  </nav>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка чатов"></div>
+  <section *ngIf="!loading && chats.length === 0" class="empty-state">
+    <div class="empty-icon"><app-icon name="chat" [size]="24" /></div>
+    <h3>Пока нет переписок</h3>
+    <p>Начните общение после взаимной симпатии.</p>
+    <a class="btn btn-primary mt-24" routerLink="/discover">Смотреть людей</a>
+  </section>
+  <div *ngIf="!loading && chats.length" class="communication-list">
     <a
-      class="chat-row"
+      class="communication-row chat-row"
       *ngFor="let chat of chats"
       [routerLink]="['/chats', chat.id]"
-    >
-      <div class="chat-avatar">
-        <span class="avatar-letter">{{ getInitial(chat) }}</span>
-      </div>
-
-      <div class="chat-meta">
-        <div class="chat-name">{{ getChatName(chat) }}</div>
-        <div class="chat-last">Say hello! 👋</div>
-      </div>
-    </a>
+      ><span class="avatar" aria-hidden="true">{{ getInitial(chat) }}</span
+      ><span class="row-details"
+        ><strong>{{ getChatName(chat) }}</strong></span
+      ><app-icon name="chevron" class="muted" [size]="18"
+    /></a>
   </div>
-</div>
+</main>

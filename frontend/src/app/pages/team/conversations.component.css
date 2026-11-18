@@ -1,0 +1,30 @@
+:host {
+  display: block;
+}
+.message-preview {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 5px;
+}
+.chat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--success);
+}
+.chat-meta time {
+  font-size: 11px;
+  color: var(--muted);
+}
+.pager {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}

@@ -17,6 +17,7 @@ import (
 var (
 	ErrChatNotFound = errors.New("chat not found")
 	ErrNotMember    = errors.New("user is not a member of this chat")
+	ErrChatClosed   = messageRepo.ErrChatClosed
 )
 
 type Service interface {
@@ -47,6 +48,9 @@ func (s *service) Create(ctx context.Context, input servicedto.CreateDTO) (model
 
 	if chat.UserOneID != input.SenderID && chat.UserTwoID != input.SenderID {
 		return models.Message{}, ErrNotMember
+	}
+	if chat.CourseID != nil && chat.Status == "declined" {
+		return models.Message{}, ErrChatClosed
 	}
 
 	msg, err := s.msgRepo.Create(ctx, repodto.CreateDTO{

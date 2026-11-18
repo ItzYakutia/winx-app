@@ -1,11 +1,14 @@
-<div class="chat-page">
-  <div class="chat-topbar">
-    <a href="/chats" class="back-btn">← Back</a>
-    <span class="chat-title">Chat</span>
-  </div>
-
-  <div *ngIf="loading" class="spinner" style="margin-top: 80px;"></div>
-
+<main class="chat-page">
+  <header class="chat-topbar">
+    <a href="/chats" class="back-btn" aria-label="Назад к чатам"
+      ><app-icon name="back" [size]="18" /><span>Назад</span></a
+    >
+    <div>
+      <h1 class="chat-title">Переписка</h1>
+    </div>
+    <app-icon name="chat" [size]="20" class="chat-heading-icon" />
+  </header>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка сообщений"></div>
   <div *ngIf="!loading" class="messages-container">
     <div
       class="message"
@@ -14,21 +17,25 @@
       [class.theirs]="!isMine(msg)"
     >
       <div class="bubble">{{ msg.content }}</div>
-      <div class="msg-time">{{ msg.created_at | date:'shortTime' }}</div>
+      <time class="msg-time">{{ msg.created_at | date: 'shortTime' }}</time>
     </div>
     <div #messagesEnd></div>
   </div>
-
   <div class="chat-input-area">
     <input
       type="text"
       class="chat-input"
-      placeholder="Write something magical... ✨"
+      placeholder="Сообщение…"
+      aria-label="Сообщение"
       [(ngModel)]="newMessage"
       (keyup.enter)="send()"
-    />
-    <button class="send-btn" (click)="send()" [disabled]="!newMessage.trim()">
-      Send ♥
+    /><button
+      class="send-btn"
+      (click)="send()"
+      [disabled]="!newMessage.trim()"
+      aria-label="Отправить сообщение"
+    >
+      <app-icon name="send" [size]="20" />
     </button>
   </div>
-</div>
+</main>

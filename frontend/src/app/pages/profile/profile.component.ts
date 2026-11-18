@@ -2,11 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProfileService, Profile, Interest } from '../../core/services/profile.service';
+import { IconComponent } from '../../shared/icon/icon.component';
+import { SheetComponent } from '../../shared/sheet/sheet.component';
+import { AuthService } from '../../core/services/auth.service';
+import { optionName } from '../../shared/text';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent, SheetComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css',
 })
@@ -19,15 +23,53 @@ export class ProfileComponent implements OnInit {
   saveSuccess = false;
   photoUploading = false;
   photoUrl = '';
+  editing: 'basics' | 'about' | 'preferences' | 'interests' | null = null;
+  titles = {
+    basics: 'Основное',
+    about: 'О себе',
+    preferences: 'Предпочтения',
+    interests: 'Интересы',
+  };
+  private snapshot: Profile | null = null;
 
   genders = ['man', 'woman', 'non_binary', 'other'];
   interestedInOptions = ['man', 'woman', 'non_binary', 'everyone'];
   lookingForOptions = [
-    'long_term_partner', 'long_term_open_to_short',
-    'short_term_open_to_long_term', 'short_term', 'new_friends', 'still_figuring_it_out',
+    'long_term_partner',
+    'long_term_open_to_short',
+    'short_term_open_to_long_term',
+    'short_term',
+    'new_friends',
+    'still_figuring_it_out',
   ];
 
-  constructor(private profileService: ProfileService) {}
+  constructor(
+    private profileService: ProfileService,
+    public auth: AuthService,
+  ) {}
+
+  edit(section: 'basics' | 'about' | 'preferences' | 'interests'): void {
+    this.snapshot = JSON.parse(JSON.stringify(this.profile));
+    this.editing = section;
+    this.saveError = '';
+    this.saveSuccess = false;
+  }
+
+  cancel(): void {
+    if (this.snapshot) this.profile = this.snapshot;
+    this.editing = null;
+    this.saveError = '';
+  }
+
+  get interestSummary(): string {
+    return (
+      this.interests
+        .filter((i) => this.profile.interest_ids?.includes(i.id))
+        .map((i) => i.name)
+        .slice(0, 3)
+        .join(', ') || 'Выбрать'
+    );
+  }
 
   ngOnInit(): void {
     this.profileService.getMe().subscribe({
@@ -54,7 +96,7 @@ export class ProfileComponent implements OnInit {
   }
 
   formatOption(opt: string): string {
-    return opt.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    return optionName(opt);
   }
 
   isInterestSelected(id: number): boolean {
@@ -68,7 +110,7 @@ export class ProfileComponent implements OnInit {
   toggleInterestedIn(opt: string): void {
     const current = this.profile.interested_in ?? [];
     if (current.includes(opt)) {
-      this.profile.interested_in = current.filter(v => v !== opt);
+      this.profile.interested_in = current.filter((v) => v !== opt);
     } else {
       this.profile.interested_in = [...current, opt];
     }
@@ -77,7 +119,7 @@ export class ProfileComponent implements OnInit {
   toggleInterest(id: number): void {
     const ids = this.profile.interest_ids ?? [];
     if (ids.includes(id)) {
-      this.profile.interest_ids = ids.filter(i => i !== id);
+      this.profile.interest_ids = ids.filter((i) => i !== id);
     } else if (ids.length < 20) {
       this.profile.interest_ids = [...ids, id];
     }
@@ -106,7 +148,10 @@ export class ProfileComponent implements OnInit {
     if (!this.profile.location) this.profile.location = { city: '' };
     this.profile.location.city = 'Almaty';
     this.profile.location.country = 'Kazakhstan';
-    this.profile.location.current_location = { latitude: 43.34536794589393, longitude: 76.89939104069116 };
+    this.profile.location.current_location = {
+      latitude: 43.34536794589393,
+      longitude: 76.89939104069116,
+    };
   }
 
   onPhotoSelected(event: Event): void {
@@ -143,13 +188,15 @@ export class ProfileComponent implements OnInit {
           },
         });
         this.saveSuccess = true;
+        this.editing = null;
         this.saving = false;
         setTimeout(() => (this.saveSuccess = false), 3000);
       },
       error: (err) => {
         const msg = err?.error?.message;
         console.error('[profile] save error:', err?.error);
-        this.saveError = typeof msg === 'string' ? msg : JSON.stringify(msg) || 'Failed to save. Try again.';
+        this.saveError =
+          typeof msg === 'string' ? msg : JSON.stringify(msg) || 'Failed to save. Try again.';
         this.saving = false;
       },
     });

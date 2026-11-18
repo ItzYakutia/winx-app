@@ -1,23 +1,125 @@
 <main class="team-page">
-  <header class="team-header"><div><p class="eyebrow">Team Mode · Make it happen</p><h1>Your next great team.</h1><p class="intro">Create a space for your course project, or join classmates with a code.</p></div></header>
+  <header class="screen-heading"><h1>Команда</h1></header>
   <app-course-picker [disabled]="busy" (courseChange)="selectCourse($event)"></app-course-picker>
-  <div *ngIf="error" class="error-msg" role="alert">{{ error }} <button *ngIf="loadFailed" class="btn btn-ghost" (click)="load()">Retry</button></div>
-  <div *ngIf="success" class="success-message" role="status">{{ success }}</div>
-  <div *ngIf="loading" class="spinner" aria-label="Loading team"></div>
+  <div *ngIf="error && !panel" class="error-msg" role="alert">
+    {{ error }}<button *ngIf="loadFailed" class="btn btn-ghost" (click)="load()">Повторить</button>
+  </div>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка команды"></div>
   <ng-container *ngIf="course && !loading">
-    <section *ngIf="team" class="card">
-      <div class="team-heading"><div><p class="eyebrow">{{ course.code }} · {{ course.title }}</p><h2>{{ team.name }}</h2><p class="role">{{ team.member_count }} of 5 places filled</p></div><span class="status" [class.ready]="team.status === 'ready'" [class.full]="team.status === 'full'">{{ statusLabel(team.status) }}</span></div>
-      <div class="member-slots" aria-hidden="true"><span *ngFor="let slot of slots" class="member-slot" [class.filled]="slot <= team.member_count"></span></div>
-      <p class="section-copy">A team is ready with 3 members and can have up to 5.</p>
-      <label for="join-code-display" class="field-note">Your team’s join code</label>
-      <div class="join-code"><input id="join-code-display" class="form-control" [value]="team.join_code" readonly (focus)="$any($event.target).select()" /><button class="btn btn-outline" (click)="copyCode()">Copy code</button></div>
-      <p class="field-note" role="status">{{ copyMessage || 'Share this code through your usual messenger. Classmates must select this course before joining.' }}</p>
-      <div *ngIf="roster" class="mt-24"><h3>Meet your team</h3><article *ngFor="let member of roster.members" class="member-row"><strong>{{ member.name || 'Student #' + member.user_id }}</strong><p class="role">{{ member.preferred_role || 'Role not set yet' }}</p><div class="skill-list"><span *ngFor="let skill of member.skills" class="skill">{{ skill }}</span></div></article></div>
+    <section *ngIf="team" class="team-summary">
+      <div class="team-summary-header">
+        <h2>{{ team.name }}</h2>
+        <button class="btn btn-outline" (click)="open('code')">
+          <app-icon name="copy" [size]="16" />Код команды
+        </button>
+      </div>
+      <p
+        class="team-state"
+        [class.ready]="team.status === 'ready'"
+        [class.full]="team.status === 'full'"
+      >
+        {{ team.member_count }} из 5 · {{ statusLabel(team.status) }}
+      </p>
+      <div *ngIf="roster" class="people-list">
+        <article *ngFor="let person of roster.members" class="candidate-row">
+          <button
+            type="button"
+            class="person-open"
+            (click)="member = person"
+            [attr.aria-label]="'Открыть профиль: ' + person.name"
+          >
+            <span class="initials" aria-hidden="true">{{ initials(person.name) }}</span
+            ><span class="person-info"
+              ><strong>{{ person.name || 'Студент' }}</strong
+              ><span *ngIf="person.preferred_role" class="role">{{
+                person.preferred_role
+              }}</span></span
+            ><app-icon name="chevron" [size]="17" class="muted" />
+          </button>
+        </article>
+      </div>
     </section>
-    <div *ngIf="!team && !loadFailed" class="team-forms">
-      <form class="card" (ngSubmit)="create()" #createForm="ngForm"><h2>Start a team</h2><p class="section-copy">You’ll be the first member of a new {{ course.code }} team.</p><div class="form-group"><label for="team-name">Team name</label><input id="team-name" class="form-control" [(ngModel)]="name" name="name" required minlength="2" maxlength="50" placeholder="e.g. The Query Crew" [disabled]="busy" /></div><button type="submit" class="btn btn-primary w-full" [disabled]="busy || !createForm.valid || name.trim().length < 2">{{ busy ? 'Please wait…' : 'Create team' }}</button></form>
-      <form class="card" (ngSubmit)="join()" #joinForm="ngForm"><h2>Have a join code?</h2><p class="section-copy">Enter the code shared by your classmates. You can join one team per course.</p><div class="form-group"><label for="join-code">Join code</label><input id="join-code" class="form-control" [(ngModel)]="joinCode" name="joinCode" required maxlength="32" placeholder="Enter team code" autocomplete="off" [disabled]="busy" style="text-transform: uppercase;" /></div><button type="submit" class="btn btn-outline w-full" [disabled]="busy || !joinForm.valid || !joinCode.trim()">{{ busy ? 'Please wait…' : 'Join team' }}</button></form>
-    </div>
-    <p class="team-help">One team per course. Teams start with one member, become Ready at three, and are Full at five. Joining a team removes you from that course’s candidate pool.</p>
+    <section *ngIf="!team && !loadFailed" class="empty-state team-empty">
+      <div class="empty-icon"><app-icon name="users" [size]="24" /></div>
+      <h3>Соберите свою команду</h3>
+      <p>До 5 человек на учебный проект.</p>
+      <button class="btn btn-primary" (click)="open('create')">Создать команду</button
+      ><button class="btn btn-ghost join-link" (click)="open('join')">У меня есть код</button>
+    </section>
   </ng-container>
+  <app-sheet
+    *ngIf="panel === 'create' || panel === 'join'"
+    [title]="panel === 'create' ? 'Новая команда' : 'Вступить в команду'"
+    [locked]="busy"
+    (closed)="close()"
+  >
+    <form class="sheet-form" (ngSubmit)="panel === 'create' ? create() : join()" #form="ngForm">
+      <div class="sheet-body">
+        <div *ngIf="panel === 'create'" class="form-group">
+          <label for="team-name">Название команды</label
+          ><input
+            id="team-name"
+            class="form-control"
+            [(ngModel)]="name"
+            name="name"
+            required
+            minlength="2"
+            maxlength="50"
+            placeholder="Придумайте название"
+            [disabled]="busy"
+          />
+        </div>
+        <div *ngIf="panel === 'join'" class="form-group">
+          <label for="join-code">Код приглашения</label
+          ><input
+            id="join-code"
+            class="form-control join-code-field"
+            [(ngModel)]="joinCode"
+            name="joinCode"
+            required
+            minlength="6"
+            maxlength="6"
+            placeholder="ABC234"
+            autocomplete="off"
+            [disabled]="busy"
+          />
+        </div>
+        <p *ngIf="error" class="error-msg mt-16" role="alert">{{ error }}</p>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-outline" type="button" [disabled]="busy" (click)="close()">
+          Отмена</button
+        ><button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="busy || !form.valid || (panel === 'create' && name.trim().length < 2)"
+        >
+          {{ busy ? 'Подождите…' : panel === 'create' ? 'Создать' : 'Вступить' }}
+        </button>
+      </div>
+    </form>
+  </app-sheet>
+  <app-sheet *ngIf="panel === 'code' && team" title="Пригласить в команду" (closed)="close()">
+    <div class="sheet-body">
+      <p class="muted">Отправьте код однокурсникам.</p>
+      <p class="team-code">{{ team.join_code }}</p>
+      <p *ngIf="copyMessage" class="field-note text-center" role="status">{{ copyMessage }}</p>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-primary" (click)="copyCode()">
+        <app-icon name="copy" [size]="16" />Скопировать код
+      </button>
+    </div>
+  </app-sheet>
+  <app-sheet *ngIf="member" [title]="member.name || 'Студент'" (closed)="member = null">
+    <div class="sheet-body">
+      <p *ngIf="member.preferred_role" class="detail-role">{{ member.preferred_role }}</p>
+      <div class="skill-list" *ngIf="member.skills.length">
+        <span class="skill" *ngFor="let skill of member.skills">{{ skill }}</span>
+      </div>
+      <p *ngIf="!member.preferred_role && !member.skills.length" class="muted">
+        Профиль пока не заполнен.
+      </p>
+    </div>
+  </app-sheet>
 </main>

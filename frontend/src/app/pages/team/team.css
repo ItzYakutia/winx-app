@@ -1,83 +1,210 @@
-:host { display: block; --pink: #7252cf; --pink-pale: #eee8fb; --border: #dfd5f3; --text: #29213f; --text-muted: #766c87; }
-.team-page { max-width: 980px; margin: 0 auto; padding: 96px 24px 110px; }
-.team-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 28px; }
-.eyebrow { text-transform: uppercase; letter-spacing: 2px; font-size: 11px; font-weight: 800; color: var(--pink); margin-bottom: 7px; }
-h1 { font-size: clamp(27px, 4vw, 36px); letter-spacing: -1px; line-height: 1.2; }
-.intro { color: var(--text-muted); margin-top: 9px; line-height: 1.6; max-width: 600px; }
-h2 { font-size: 21px; margin-bottom: 8px; }
-h3 { font-size: 17px; }
-.section-copy { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
-.team-page .btn-primary { background: linear-gradient(120deg, #7657cf, #9e60c9); box-shadow: 0 5px 15px #7252cf25; }
-.team-page .card { border: 1px solid #e9e1f4; box-shadow: 0 6px 25px #3b235608; margin-bottom: 18px; }
-.team-page .form-control { width: 100%; min-width: 0; }
-.team-page .form-group label { text-transform: none; letter-spacing: 0; }
-.subtle-link { color: var(--pink); font-weight: 700; font-size: 14px; text-decoration: none; }
-.subtle-link:hover { text-decoration: underline; }
-.course-picker { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 24px; }
-.course-picker label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 800; }
-.course-picker .subtle-link { display: inline-block; margin-top: 10px; }
-.compact { padding: 30px 16px; }
-.empty-state p { line-height: 1.65; margin-top: 8px; }
-.success-message { background: #eaf6ef; color: #246844; padding: 13px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; }
-.actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.course-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.course-option { display: flex; gap: 12px; align-items: flex-start; padding: 15px; border: 1.5px solid #e9e2f2; border-radius: 13px; cursor: pointer; }
-.course-option.selected { border-color: var(--pink); background: #f7f3ff; }
-.course-option input { margin-top: 4px; width: 17px; height: 17px; accent-color: var(--pink); flex-shrink: 0; }
-.course-option strong, .course-option span { display: block; }
-.course-option strong { font-size: 13px; color: var(--pink); margin-bottom: 4px; }
-.course-option span { font-size: 14px; line-height: 1.4; }
-.skill-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
-.skill { display: inline-block; padding: 6px 11px; border-radius: 100px; background: #f1ebfc; color: #6746b2; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
-.field-note { color: var(--text-muted); font-size: 12px; line-height: 1.5; margin-top: 6px; }
-textarea { resize: vertical; min-height: 100px; }
-.profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 20px; align-items: start; }
-.aside { background: #f2ecfc; border-radius: 18px; padding: 24px; line-height: 1.7; }
-.aside p { font-size: 14px; color: var(--text-muted); margin-top: 12px; }
-.deck-area { max-width: 560px; margin: 0 auto; }
-.candidate-card { position: relative; padding: 36px; background: linear-gradient(150deg, #fff, #f7f3ff); border: 1px solid #e6dcf4; border-radius: 24px; box-shadow: 0 12px 35px #492c6a0c; min-height: 320px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; touch-action: pan-y; user-select: none; }
-.initials { width: 76px; height: 76px; border-radius: 23px; background: linear-gradient(130deg, #ece2fe, #e3eaff); color: #7453c2; display: grid; place-items: center; font-size: 25px; font-weight: 800; margin-bottom: 22px; flex-shrink: 0; }
-.candidate-card h2 { font-size: 27px; overflow-wrap: anywhere; }
-.role { color: var(--text-muted); margin: 4px 0 8px; }
-.card-footer { color: var(--text-muted); font-size: 12px; margin-top: 20px; line-height: 1.6; }
-.deck-count { text-align: center; color: var(--text-muted); font-size: 13px; margin: 12px 0 20px; }
-.deck-controls { justify-content: center; }
-.deck-controls .btn { min-width: 145px; }
-.gesture-hint { position: absolute; right: 24px; top: 20px; font-weight: 800; color: var(--pink); text-transform: uppercase; }
-.list-card { display: flex; align-items: start; gap: 18px; }
-.list-card .initials { width: 55px; height: 55px; font-size: 18px; border-radius: 17px; margin: 0; }
-.list-card .content { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.list-card .btn { font-size: 13px; padding: 8px 16px; }
-.pager { display: flex; align-items: center; justify-content: space-between; margin: 20px 0; }
-.team-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-.team-forms .card { margin: 0; }
-.status { padding: 5px 12px; border-radius: 100px; background: #f3eafc; color: #7c4ab3; font-size: 12px; font-weight: 800; white-space: nowrap; }
-.status.ready { color: #28734d; background: #e6f5ee; }
-.status.full { color: #3b60ae; background: #e8efff; }
-.team-heading { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 24px; }
-.team-heading h2 { overflow-wrap: anywhere; }
-.member-slots { display: flex; gap: 8px; margin: 15px 0; }
-.member-slot { height: 8px; flex: 1; background: #eee9f5; border-radius: 20px; }
-.member-slot.filled { background: #8b68d6; }
-.join-code { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
-.join-code input { width: 180px !important; font-family: monospace; letter-spacing: 3px; font-weight: 800; font-size: 20px; }
-.member-row { border-top: 1px solid #eee8f4; padding: 18px 0 2px; }
-.member-row:last-child { padding-bottom: 0; }
-.team-help { margin-top: 24px; color: var(--text-muted); font-size: 13px; line-height: 1.7; }
-@media (max-width: 760px) {
- .profile-layout, .team-forms { grid-template-columns: 1fr; }
- .aside { order: -1; padding: 18px; }
- .aside p { margin-top: 6px; }
+:host {
+  display: block;
+}
+.people-list {
+  min-width: 0;
+}
+.candidate-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  touch-action: pan-y;
+  transition: background 0.15s;
+}
+.candidate-row:hover {
+  background: var(--soft);
+}
+.person-open {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+}
+.initials {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--cream);
+  color: #5f533d;
+  font-size: 16px;
+  font-weight: 550;
+}
+.person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.person-info strong {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.role {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.person-skills {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.person-skills > span {
+  color: #9b9284;
+}
+.save-person {
+  background: transparent;
+  border: 0;
+}
+.load-more {
+  display: flex;
+  margin: 24px auto 0;
+}
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.skill {
+  padding: 6px 10px;
+  background: var(--soft);
+  border-radius: 6px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.detail-role {
+  font-size: 15px;
+  color: var(--muted);
+}
+.course-options {
+  display: flex;
+  flex-direction: column;
+}
+.course-option {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 50px;
+}
+.course-option:first-child {
+  padding-top: 0;
+}
+.course-option:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.course-option input {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.team-summary {
+  margin-top: 28px;
+}
+.team-summary h2 {
+  font-size: 25px;
+}
+.team-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.team-summary-header > .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 10px 12px;
+}
+.team-state {
+  font-size: 12px;
+  color: var(--muted);
+}
+.team-state.ready {
+  color: var(--success);
+}
+.team-state.full {
+  color: var(--ink);
+}
+.team-summary .people-list {
+  margin-top: 20px;
+}
+.team-summary .candidate-row {
+  padding: 16px 0;
+}
+.team-empty {
+  padding: 56px 16px;
+}
+.team-empty .btn {
+  margin-top: 24px;
+}
+.team-empty .join-link {
+  display: block;
+  margin: 12px auto 0;
+}
+.team-code {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  padding: 20px 0;
+}
+.join-code-field {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-align: center;
+  font-size: 23px;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
 }
 @media (max-width: 640px) {
- .team-page { padding: 82px 16px calc(90px + env(safe-area-inset-bottom)); }
- .team-header { flex-direction: column; margin-bottom: 22px; }
- .course-grid { grid-template-columns: 1fr; }
- .candidate-card { padding: 28px; min-height: 300px; }
- .team-page .card { padding: 20px; }
- .list-card { gap: 12px; flex-wrap: wrap; }
- .list-card .content { min-width: 180px; }
- .team-heading { flex-wrap: wrap; }
- .actions .btn { flex: 1; }
+  .candidate-row {
+    gap: 10px;
+    padding: 17px 0;
+  }
+  .person-open {
+    gap: 12px;
+  }
+  .initials {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
+  }
+  .team-summary h2 {
+    font-size: 22px;
+  }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }

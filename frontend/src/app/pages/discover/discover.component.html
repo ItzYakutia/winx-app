@@ -1,75 +1,83 @@
-<div class="discover-page">
-  <div class="discover-header">
-    <h2>Discover ✨</h2>
-    <p>Find your magical match</p>
-  </div>
-
-  <!-- Match notification -->
-  <div class="match-toast" *ngIf="matchMessage">
-    <span>🎉</span> {{ matchMessage }}
-  </div>
-
-  <!-- Loading -->
-  <div *ngIf="loading" class="spinner"></div>
-
-  <!-- Empty -->
-  <div *ngIf="!loading && !hasMore" class="empty-state">
-    <div class="emoji">🌟</div>
-    <h3>You've seen everyone!</h3>
-    <p>Check back later for new magical matches</p>
-  </div>
-
-  <!-- Card stack -->
+<main class="page discover-page">
+  <header class="screen-heading"><h1>Люди рядом</h1></header>
+  <p class="quiet-toast" *ngIf="matchMessage" role="status">{{ matchMessage }}</p>
+  <div *ngIf="loading" class="spinner" aria-label="Загрузка профилей"></div>
+  <section *ngIf="!loading && !hasMore" class="empty-state">
+    <h3>На сегодня все</h3>
+    <p>Загляните позже — появятся новые люди.</p>
+  </section>
   <div *ngIf="!loading && hasMore" class="card-area">
     <ng-container *ngIf="current as prof">
-      <div
+      <article
         class="profile-card"
+        appSwipeCard
+        [swipeDisabled]="swipeState !== 'idle'"
+        (swipeDrag)="dragX = $event"
+        (swiped)="swipe($event)"
+        [style.transform]="dragTransform"
+        [class.dragging]="dragX !== 0 && swipeState === 'idle'"
+        tabindex="0"
+        [attr.aria-label]="'Карточка профиля: ' + prof.name"
+        aria-keyshortcuts="ArrowLeft ArrowRight"
         [class.swipe-left]="swipeState === 'left'"
         [class.swipe-right]="swipeState === 'right'"
       >
-        <!-- Photo -->
-        <div class="card-photo" [style.background-image]="getPhotoUrl(prof) ? 'url(' + getPhotoUrl(prof) + ')' : ''">
-          <div *ngIf="!getPhotoUrl(prof)" class="photo-placeholder">🧚</div>
-          <div class="card-gradient"></div>
-          <div class="card-info">
-            <div class="card-name">
-              {{ prof.name || 'Unknown' }}
-              <span *ngIf="prof.age" class="card-age">, {{ prof.age }}</span>
-            </div>
-            <div class="card-meta" *ngIf="prof.city">
-              📍 {{ prof.city }}{{ prof.country ? ', ' + prof.country : '' }}
-            </div>
-            <div class="card-meta" *ngIf="prof.looking_for">
-              💫 {{ prof.looking_for }}
-            </div>
-          </div>
+        <div class="card-photo" role="img" [attr.aria-label]="prof.name || 'Фото профиля'">
+          <span class="photo-placeholder" aria-hidden="true">{{
+            prof.name?.charAt(0) || '?'
+          }}</span>
+          <img
+            *ngIf="getPhotoUrl(prof)"
+            class="profile-picture"
+            [src]="getPhotoUrl(prof)"
+            alt=""
+            (error)="photoFailed(prof.photo_url || '')"
+          />
         </div>
-
-        <!-- About -->
-        <div class="card-body">
-          <p *ngIf="prof.about_me" class="card-bio">{{ prof.about_me }}</p>
-
-          <div class="card-tags" *ngIf="prof.shared_interests > 0">
-            <span class="tag">{{ prof.shared_interests }} shared interests</span>
-          </div>
-          <div class="card-tags" *ngIf="prof.distance_km != null">
-            <span class="tag">{{ prof.distance_km | number:'1.0-0' }} km away</span>
-          </div>
+        <div class="card-detail">
+          <h2>
+            {{ prof.name || 'Новый знакомый'
+            }}<span class="card-age" *ngIf="prof.age">, {{ prof.age }}</span>
+          </h2>
+          <p class="card-meta" *ngIf="prof.city || prof.distance_km != null">
+            {{ prof.city
+            }}<span *ngIf="prof.distance_km != null"
+              >{{ prof.city ? ' · ' : '' }}{{ prof.distance_km | number: '1.0-0' }} км</span
+            >
+          </p>
+          <p class="shared-interests" *ngIf="prof.shared_interests > 0">
+            <app-icon name="heart" [size]="14" />Общих интересов: {{ prof.shared_interests }}
+          </p>
+          <details
+            *ngIf="prof.about_me || prof.looking_for"
+            class="person-details"
+            [attr.open]="detailsOpen ? '' : null"
+            (toggle)="detailsOpen = $any($event.target).open"
+          >
+            <summary>О человеке</summary>
+            <p *ngIf="prof.about_me">{{ prof.about_me }}</p>
+            <p class="muted" *ngIf="prof.looking_for">{{ optionName(prof.looking_for) }}</p>
+          </details>
         </div>
-      </div>
+      </article>
     </ng-container>
-
-    <!-- Swipe counter -->
-    <div class="card-counter">{{ currentIndex + 1 }} / {{ profiles.length }}</div>
-
-    <!-- Action buttons -->
     <div class="swipe-actions">
-      <button class="swipe-btn pass" (click)="swipeLeft()" [disabled]="swipeState !== 'idle'">
-        ✕
-      </button>
-      <button class="swipe-btn like" (click)="swipeRight()" [disabled]="swipeState !== 'idle'">
-        ♥
+      <button
+        class="btn btn-outline"
+        (click)="swipeLeft()"
+        [disabled]="swipeState !== 'idle'"
+        aria-label="Пропустить профиль"
+      >
+        <app-icon name="close" [size]="20" />Пропустить</button
+      ><button
+        class="btn btn-primary"
+        (click)="swipeRight()"
+        [disabled]="swipeState !== 'idle'"
+        aria-label="Нравится профиль"
+      >
+        <app-icon name="heart" [size]="20" />Нравится
       </button>
     </div>
+    <p class="swipe-hint">Смахните карточку влево или вправо</p>
   </div>
-</div>
+</main>

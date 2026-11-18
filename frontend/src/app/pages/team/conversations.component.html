@@ -1,0 +1,45 @@
+<main class="team-page">
+  <header class="screen-heading"><h1>Чаты</h1></header>
+  <app-course-picker (courseChange)="selectCourse($event)" />
+  <p *ngIf="error" class="error-msg" role="alert">
+    {{ error }}<button class="btn btn-ghost" (click)="load()">Повторить</button>
+  </p>
+  <div *ngIf="loading && !rooms.length" class="spinner" aria-label="Загрузка чатов"></div>
+  <div class="communication-list" *ngIf="rooms.length">
+    <a class="communication-row" *ngFor="let room of rooms" [routerLink]="['/team/chats', room.id]">
+      <span class="avatar" aria-hidden="true">{{ initials(room.peer_name) }}</span>
+      <span class="row-details"
+        ><strong>{{ room.peer_name || 'Студент' }}</strong
+        ><span class="message-preview">{{ preview(room) }}</span></span
+      >
+      <span class="chat-meta"
+        ><time>{{
+          room.last_message_at || room.created_at
+            | date: dateFormat(room.last_message_at || room.created_at)
+        }}</time
+        ><app-icon *ngIf="room.status === 'joined'" name="check" [size]="16" aria-label="В команде"
+      /></span>
+    </a>
+  </div>
+  <div class="pager" *ngIf="offset > 0 || rooms.length === 50">
+    <button
+      class="btn btn-outline"
+      [disabled]="loading || offset === 0"
+      (click)="load(false, offset - 50)"
+    >
+      Назад</button
+    ><button
+      class="btn btn-outline"
+      [disabled]="loading || rooms.length < 50"
+      (click)="load(false, offset + 50)"
+    >
+      Далее
+    </button>
+  </div>
+  <section class="empty-state" *ngIf="course && !loading && !rooms.length && !error">
+    <div class="empty-icon"><app-icon name="chat" [size]="24" /></div>
+    <h3>Пока нет диалогов</h3>
+    <p>Лайкните человека в поиске, чтобы начать общение.</p>
+    <a class="btn btn-primary mt-24" routerLink="/team/discover">Найти тиммейтов</a>
+  </section>
+</main>

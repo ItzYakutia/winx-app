@@ -8,6 +8,7 @@ import (
 	corevalidation "winx-profile/internal/app/core/validation"
 	academicHandler "winx-profile/internal/app/domain/handlers/academic"
 	choiceHandler "winx-profile/internal/app/domain/handlers/choice"
+	conversationHandler "winx-profile/internal/app/domain/handlers/conversation"
 	courseHandler "winx-profile/internal/app/domain/handlers/course"
 	deckHandler "winx-profile/internal/app/domain/handlers/deck"
 	erasureHandler "winx-profile/internal/app/domain/handlers/erasure"
@@ -16,6 +17,7 @@ import (
 	photoHandler "winx-profile/internal/app/domain/handlers/photo"
 	profileHandler "winx-profile/internal/app/domain/handlers/profile"
 	teamHandler "winx-profile/internal/app/domain/handlers/team"
+	conversationRepository "winx-profile/internal/app/domain/repositories/conversation"
 	erasureRepository "winx-profile/internal/app/domain/repositories/erasure"
 	profileRepository "winx-profile/internal/app/domain/repositories/profile"
 	academicService "winx-profile/internal/app/domain/services/academic"
@@ -82,6 +84,12 @@ func (s *Server) initDomainRoutes() error {
 	s.initAcademicRoutes(academicHandler.NewHandler(academicService.NewService(s.pgdb), binder))
 	s.initDeckRoutes(deckHandler.NewHandler(deckService.NewService(s.pgdb), binder))
 	s.initChoiceRoutes(choiceHandler.NewHandler(choiceService.NewService(s.pgdb), binder))
+	conversations := conversationHandler.NewHandler(conversationRepository.New(s.pgdb), binder)
+	conversationRoutes := authUserRouter.Group("/profile/academic/conversations")
+	conversationRoutes.GET("", conversations.List)
+	conversationRoutes.GET("/detail", conversations.Get)
+	conversationRoutes.GET("/messages", conversations.Messages)
+	conversationRoutes.POST("/decision", conversations.Decide)
 	s.initTeamRoutes(teamHandler.NewHandler(teamService.NewService(s.pgdb), binder))
 	s.initInternalRoutes(erasureHandler.NewHandler(erasureService.NewService(
 		erasureRepository.NewRepository(s.pgdb),

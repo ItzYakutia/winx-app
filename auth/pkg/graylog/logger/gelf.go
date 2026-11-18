@@ -13,6 +13,11 @@ import (
 var Log = logrus.New()
 
 func SetupLogger() {
+	// An empty host keeps logs on stderr in deployments without Graylog.
+	if configs.Config.Logger.Host == "" {
+		return
+	}
+
 	addr := fmt.Sprintf("%s:%d", configs.Config.Logger.Host, configs.Config.Logger.Port)
 	hostname := fmt.Sprintf("%s_%s", configs.Config.App.Environment, configs.Config.Logger.Source)
 

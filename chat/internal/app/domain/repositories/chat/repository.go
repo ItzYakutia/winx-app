@@ -58,6 +58,7 @@ func (r *repository) ListByUserID(ctx context.Context, input repodto.ListDTO) ([
 	var chats []models.Chat
 
 	q := r.db.WithContext(ctx).
+		Where("course_id IS NULL").
 		Where("user_one_id = ? OR user_two_id = ?", input.UserID, input.UserID).
 		Order("created_at DESC")
 
