@@ -1,3 +1,4 @@
+import { academicError } from '../../core/services/academic.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,11 +19,10 @@ export class ProfileComponent implements OnInit {
   profile: Profile = { location: { city: '' } };
   interests: Interest[] = [];
   loading = true;
+  loadError = '';
   saving = false;
   saveError = '';
   saveSuccess = false;
-  photoUploading = false;
-  photoUrl = '';
   editing: 'basics' | 'about' | 'preferences' | 'interests' | null = null;
   titles = {
     basics: 'Основное',
@@ -72,6 +72,12 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading = true;
+    this.loadError = '';
     this.profileService.getMe().subscribe({
       next: (res) => {
         if (res.data) {
@@ -80,17 +86,14 @@ export class ProfileComponent implements OnInit {
         }
         this.loading = false;
       },
-      error: () => (this.loading = false),
+      error: (error) => {
+        this.loading = false;
+        this.loadError = academicError(error);
+      },
     });
 
     this.profileService.getInterests().subscribe({
       next: (res) => (this.interests = res.data ?? []),
-    });
-
-    this.profileService.getPhoto().subscribe({
-      next: (res) => {
-        if (res.data?.url) this.photoUrl = res.data.url;
-      },
       error: () => {},
     });
   }
@@ -137,34 +140,12 @@ export class ProfileComponent implements OnInit {
             longitude: res.data.current_location.longitude,
           };
         } else {
-          this.setDefaultLocation();
+          this.saveError = 'Не удалось определить город. Введите его вручную.';
         }
       },
-      error: () => this.setDefaultLocation(),
-    });
-  }
-
-  private setDefaultLocation(): void {
-    if (!this.profile.location) this.profile.location = { city: '' };
-    this.profile.location.city = 'Almaty';
-    this.profile.location.country = 'Kazakhstan';
-    this.profile.location.current_location = {
-      latitude: 43.34536794589393,
-      longitude: 76.89939104069116,
-    };
-  }
-
-  onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.photoUploading = true;
-    this.profileService.storePhoto(file).subscribe({
-      next: (res) => {
-        if (res.data?.url) this.photoUrl = res.data.url;
-        this.photoUploading = false;
+      error: () => {
+        this.saveError = 'Не удалось определить город. Введите его вручную.';
       },
-      error: () => (this.photoUploading = false),
     });
   }
 
@@ -174,29 +155,18 @@ export class ProfileComponent implements OnInit {
     this.saveSuccess = false;
 
     const payload = this.buildPayload();
-    console.log('[profile] saving payload:', payload);
 
     this.profileService.store(payload).subscribe({
-      next: () => {
-        this.profileService.getMe().subscribe({
-          next: (res) => {
-            if (res.data) {
-              this.profile = res.data;
-              if (!this.profile.location) this.profile.location = { city: '' };
-            }
-            console.log('[profile] reloaded after save:', this.profile);
-          },
-        });
+      next: (res) => {
+        this.profile = res.data;
+        if (!this.profile.location) this.profile.location = { city: '' };
         this.saveSuccess = true;
         this.editing = null;
         this.saving = false;
         setTimeout(() => (this.saveSuccess = false), 3000);
       },
       error: (err) => {
-        const msg = err?.error?.message;
-        console.error('[profile] save error:', err?.error);
-        this.saveError =
-          typeof msg === 'string' ? msg : JSON.stringify(msg) || 'Failed to save. Try again.';
+        this.saveError = academicError(err, 'Не удалось сохранить профиль. Попробуйте ещё раз.');
         this.saving = false;
       },
     });
@@ -208,11 +178,6 @@ export class ProfileComponent implements OnInit {
     if (!p.birth_date) delete p.birth_date;
     if (!p.gender) delete p.gender;
     if (!p.looking_for) delete p.looking_for;
-    if (!p.first_name) delete p.first_name;
-    if (!p.about_me) delete p.about_me;
-    if (!p.job_title) delete p.job_title;
-    if (!p.company) delete p.company;
-    if (!p.school) delete p.school;
     // Remove read-only/computed fields the backend doesn't need
     delete (p as any).id;
     delete (p as any).user_id;

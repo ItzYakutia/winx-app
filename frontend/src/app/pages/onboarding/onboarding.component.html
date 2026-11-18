@@ -1,0 +1,266 @@
+<main class="onboarding">
+  <header class="onboarding-header">
+    <span class="brand" aria-label="Winx">winx<span>.</span></span>
+    <button type="button" class="btn btn-ghost" (click)="auth.logout()" [disabled]="busy">
+      Выйти
+    </button>
+  </header>
+  <section class="onboarding-content" [attr.aria-busy]="loading || busy">
+    <div *ngIf="loading" class="spinner" aria-label="Загрузка"></div>
+    <ng-container *ngIf="!loading">
+      <p class="step-count">Шаг {{ step }} из 3</p>
+      <div class="progress" aria-hidden="true">
+        <span [style.width.%]="(step / 3) * 100"></span>
+      </div>
+      <h1 #stepTitle tabindex="-1">
+        {{
+          step === 1
+            ? 'Как вас зовут?'
+            : step === 2
+              ? 'С чего начнём?'
+              : selectedMode === 'team'
+                ? 'Найдём вашу команду'
+                : 'Найдём своих людей'
+        }}
+      </h1>
+      <p class="intro">
+        {{
+          step === 1
+            ? 'Так вас увидят другие студенты.'
+            : step === 2
+              ? 'Режим можно поменять в любой момент.'
+              : selectedMode === 'team'
+                ? 'Выберите предметы, по которым ищете тиммейтов.'
+                : 'Выберите, с кем хотите познакомиться.'
+        }}
+      </p>
+      <form (ngSubmit)="advance()" #form="ngForm">
+        <fieldset [disabled]="busy">
+          <ng-container *ngIf="step === 1">
+            <div class="form-group">
+              <label for="onboarding-name">Имя</label>
+              <input
+                id="onboarding-name"
+                class="form-control"
+                [(ngModel)]="name"
+                name="name"
+                required
+                maxlength="100"
+                autocomplete="given-name"
+                placeholder="Ваше имя"
+              />
+            </div>
+            <div class="form-group">
+              <label for="onboarding-city">Город</label>
+              <input
+                id="onboarding-city"
+                class="form-control"
+                [(ngModel)]="city"
+                name="city"
+                required
+                maxlength="100"
+                autocomplete="address-level2"
+                placeholder="Например, Алматы"
+              />
+            </div>
+          </ng-container>
+          <div *ngIf="step === 2" class="mode-options" role="group" aria-label="Режим приложения">
+            <button
+              type="button"
+              class="mode-option"
+              [class.selected]="selectedMode === 'team'"
+              [attr.aria-pressed]="selectedMode === 'team'"
+              (click)="selectedMode = 'team'"
+            >
+              <app-icon name="users" [size]="24" /><span
+                ><strong>Найти тиммейтов</strong
+                ><small>Собрать команду на учебный проект</small></span
+              ><span class="radio-dot" aria-hidden="true"></span>
+            </button>
+            <button
+              type="button"
+              class="mode-option"
+              [class.selected]="selectedMode === 'social'"
+              [attr.aria-pressed]="selectedMode === 'social'"
+              (click)="selectedMode = 'social'"
+            >
+              <app-icon name="heart" [size]="24" /><span
+                ><strong>Познакомиться</strong><small>Найти людей с общими интересами</small></span
+              ><span class="radio-dot" aria-hidden="true"></span>
+            </button>
+          </div>
+          <ng-container *ngIf="step === 3 && selectedMode === 'team'">
+            <div class="form-group">
+              <span class="field-label" id="subjects-label">Ваши предметы</span>
+              <div class="chips" role="group" aria-labelledby="subjects-label">
+                <button
+                  type="button"
+                  class="chip"
+                  *ngFor="let course of courses"
+                  [class.selected]="courseIds.includes(course.id)"
+                  [attr.aria-pressed]="courseIds.includes(course.id)"
+                  (click)="toggleCourse(course.id)"
+                >
+                  {{ label(course.code) }}
+                </button>
+              </div>
+              <p *ngIf="!courses.length && !error" class="field-note">
+                Пока нет доступных предметов.
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="onboarding-skills"
+                >Навыки <span class="optional">необязательно</span></label
+              >
+              <input
+                id="onboarding-skills"
+                class="form-control"
+                [(ngModel)]="skillsText"
+                name="skills"
+                placeholder="Python, Figma, презентации"
+              />
+              <p *ngIf="skillsError" class="error-msg" role="alert">
+                {{ skillsError }}
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="onboarding-role"
+                >Роль в команде <span class="optional">необязательно</span></label
+              >
+              <input
+                id="onboarding-role"
+                class="form-control"
+                [(ngModel)]="role"
+                name="role"
+                maxlength="50"
+                placeholder="Например, разработчик"
+              />
+            </div>
+            <p class="field-note">
+              Свайп вправо открывает чат. После общения сможете собраться в команду.
+            </p>
+          </ng-container>
+          <ng-container *ngIf="step === 3 && selectedMode === 'social'"
+            ><div class="form-row">
+              <div class="form-group">
+                <label for="onboarding-birth">Дата рождения</label
+                ><input
+                  id="onboarding-birth"
+                  class="form-control"
+                  type="date"
+                  name="birth"
+                  [(ngModel)]="birthDate"
+                  required
+                  min="1900-01-01"
+                  [max]="today"
+                  autocomplete="bday"
+                />
+              </div>
+              <div class="form-group">
+                <label for="onboarding-gender">Пол</label
+                ><select
+                  id="onboarding-gender"
+                  class="form-control"
+                  [(ngModel)]="gender"
+                  name="gender"
+                  required
+                >
+                  <option value="" disabled>Выберите</option>
+                  <option value="man">Мужской</option>
+                  <option value="woman">Женский</option>
+                  <option value="non_binary">Небинарный</option>
+                  <option value="other">Другое</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="onboarding-interested">Кого хотите встретить?</label>
+              <select
+                id="onboarding-interested"
+                class="form-control"
+                [(ngModel)]="interestedIn"
+                name="interested"
+              >
+                <option value="everyone">Всех</option>
+                <option value="man">Парней</option>
+                <option value="woman">Девушек</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="onboarding-about"
+                >Пару слов о себе <span class="optional">необязательно</span></label
+              >
+              <textarea
+                id="onboarding-about"
+                class="form-control"
+                [(ngModel)]="about"
+                name="about"
+                maxlength="2000"
+                rows="2"
+                placeholder="Чем увлекаетесь?"
+              ></textarea>
+            </div>
+            <details class="interest-options">
+              <summary>
+                Добавить интересы
+                <span class="optional">{{
+                  interestIds.length ? '· ' + interestIds.length : 'необязательно'
+                }}</span>
+              </summary>
+              <div class="chips">
+                <button
+                  type="button"
+                  class="chip"
+                  *ngFor="let interest of interests"
+                  [class.selected]="interestIds.includes(interest.id)"
+                  [attr.aria-pressed]="interestIds.includes(interest.id)"
+                  (click)="toggleInterest(interest.id)"
+                >
+                  {{ interest.name }}
+                </button>
+              </div>
+            </details>
+          </ng-container>
+        </fieldset>
+        <div *ngIf="error" class="error-msg" role="alert">
+          {{ error }}
+          <button
+            type="button"
+            *ngIf="loadFailed || (step === 3 && !optionsReady)"
+            class="btn btn-ghost"
+            (click)="retry()"
+            [disabled]="busy"
+          >
+            Повторить загрузку
+          </button>
+        </div>
+        <div class="onboarding-actions">
+          <button
+            *ngIf="step > 1"
+            class="btn btn-outline"
+            type="button"
+            (click)="back()"
+            [disabled]="busy"
+          >
+            Назад
+          </button>
+          <button
+            class="btn btn-primary continue"
+            type="submit"
+            [disabled]="
+              busy ||
+              loadFailed ||
+              (step === 3 && !optionsReady) ||
+              !form.valid ||
+              (step === 3 && selectedMode === 'social' && !socialReady) ||
+              (step === 1 && (!name.trim() || !city.trim())) ||
+              (step === 3 && selectedMode === 'team' && (!courseIds.length || !!skillsError))
+            "
+          >
+            {{ busy ? 'Сохраняем…' : step === 3 ? 'Начать поиск' : 'Продолжить' }}
+          </button>
+        </div>
+      </form>
+    </ng-container>
+  </section>
+</main>

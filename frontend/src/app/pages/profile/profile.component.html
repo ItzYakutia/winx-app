@@ -4,29 +4,17 @@
     <span class="inline-status" role="status" *ngIf="saveSuccess">Сохранено</span>
   </header>
   <div *ngIf="loading" class="spinner" aria-label="Загрузка профиля"></div>
-  <ng-container *ngIf="!loading">
+  <div *ngIf="loadError" class="error-msg" role="alert">
+    {{ loadError }}<button class="btn btn-ghost" (click)="load()">Повторить</button>
+  </div>
+  <ng-container *ngIf="!loading && !loadError">
     <div class="profile-identity">
-      <button
-        type="button"
-        class="profile-initial photo-edit"
-        (click)="photoInput.click()"
-        [disabled]="photoUploading"
-        [style.background-image]="photoUrl ? 'url(' + photoUrl + ')' : ''"
-        aria-label="Изменить фото"
-      >
-        <span *ngIf="!photoUrl">{{ (profile.first_name || '?').charAt(0) }}</span
-        ><span class="photo-edit-badge"><app-icon name="upload" [size]="12" /></span></button
-      ><input
-        #photoInput
-        id="photoInput"
-        type="file"
-        accept="image/*"
-        (change)="onPhotoSelected($event)"
-        hidden
-      />
+      <span class="profile-initial" aria-hidden="true">{{
+        profile.first_name?.charAt(0) || '?'
+      }}</span>
       <div>
         <h2>{{ profile.first_name || 'Мой профиль' }}</h2>
-        <p>{{ photoUploading ? 'Загружаем фото…' : profile.location?.city }}</p>
+        <p>{{ profile.location?.city }}</p>
       </div>
     </div>
     <p *ngIf="!profile.first_name" class="setup-note">

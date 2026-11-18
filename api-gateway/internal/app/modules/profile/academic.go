@@ -33,6 +33,7 @@ var AcademicRoutes = []AcademicRoute{
 	{http.MethodPost, "/academic/teams"},
 	{http.MethodGet, "/academic/teams/me"},
 	{http.MethodPost, "/academic/teams/join"},
+	{http.MethodPost, "/academic/teams/member"},
 	{http.MethodGet, "/academic/teams/roster"},
 }
 

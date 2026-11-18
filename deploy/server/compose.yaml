@@ -46,6 +46,13 @@ services:
 
   api-gateway-winx:
     <<: *go
+    depends_on:
+      - auth-winx
+      - notification-winx
+      - profile-winx
+      - match-winx
+      - recommendation-winx
+      - chat-winx
     command: ["/app/bin/api-gateway"]
     volumes:
       - ./config/api-gateway.yaml:/app/config.dev.yaml:ro

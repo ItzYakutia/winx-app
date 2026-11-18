@@ -1,29 +1,9 @@
 :host {
   display: block;
 }
-.photo-edit {
-  position: relative;
-  border: 0;
-  cursor: pointer;
-  background-size: cover;
-  background-position: center;
-}
 .location-action {
   padding-left: 0;
   font-size: 12px;
-}
-.photo-edit-badge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
 }
 .interests-grid {
   display: flex;

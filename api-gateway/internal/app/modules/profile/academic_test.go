@@ -65,6 +65,7 @@ func TestAcademicRoutes_AreTheExpectedAllowList(t *testing.T) {
 		"POST /academic/teams",
 		"GET /academic/teams/me",
 		"POST /academic/teams/join",
+		"POST /academic/teams/member",
 		"GET /academic/teams/roster",
 	}, got)
 

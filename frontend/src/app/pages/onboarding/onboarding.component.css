@@ -1,0 +1,161 @@
+:host {
+  display: block;
+}
+.onboarding {
+  min-height: 100dvh;
+  padding: 0 24px 40px;
+}
+.onboarding-header {
+  max-width: 960px;
+  margin: auto;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -1.6px;
+}
+.brand span {
+  color: var(--accent);
+}
+.onboarding-content {
+  max-width: 460px;
+  margin: 44px auto 0;
+}
+.step-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+.progress {
+  height: 2px;
+  margin: 12px 0 32px;
+  background: var(--line);
+}
+.progress span {
+  height: 100%;
+  background: var(--accent);
+  display: block;
+  transition: width 0.2s;
+}
+h1 {
+  font-size: 30px;
+  outline: none;
+}
+.intro {
+  margin: 12px 0 30px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+fieldset {
+  border: 0;
+  min-width: 0;
+}
+.optional {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.mode-options {
+  display: grid;
+  gap: 12px;
+}
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  text-align: left;
+}
+.mode-option.selected {
+  border-color: var(--ink);
+}
+.mode-option > span:nth-child(2) {
+  flex: 1;
+}
+.mode-option strong {
+  font-size: 14px;
+  display: block;
+}
+.mode-option small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+  line-height: 1.6;
+}
+.radio-dot {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.selected .radio-dot {
+  border: 5px solid var(--ink);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.chip {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 12px;
+  min-height: 40px;
+}
+.chip.selected {
+  border-color: var(--ink);
+  background: var(--cream);
+}
+.interest-options summary {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 12px 0;
+}
+.onboarding-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+.continue {
+  flex: 1;
+}
+.error-msg {
+  margin-top: 20px;
+}
+@media (max-width: 640px) {
+  .onboarding {
+    padding: 0 20px 32px;
+  }
+  .onboarding-header {
+    height: 72px;
+  }
+  .onboarding-content {
+    margin-top: 24px;
+  }
+  h1 {
+    font-size: 27px;
+  }
+  .mode-option {
+    padding: 18px 14px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

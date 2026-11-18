@@ -1,8 +1,19 @@
 <main class="page discover-page">
   <header class="screen-heading"><h1>Люди рядом</h1></header>
-  <p class="quiet-toast" *ngIf="matchMessage" role="status">{{ matchMessage }}</p>
+  <section *ngIf="needsSetup" class="setup-note">
+    <h2>Настройте знакомства</h2>
+    <p>В профиле укажите дату рождения, пол и кого хотите встретить.</p>
+    <a routerLink="/profile" class="btn btn-primary mt-16">Заполнить профиль</a>
+  </section>
+  <p class="quiet-toast" *ngIf="matchMessage" role="status">
+    {{ matchMessage }}
+  </p>
+  <div *ngIf="error" class="error-msg" role="alert">
+    {{ error }}<button *ngIf="!hasMore" class="btn btn-ghost" (click)="load()">Повторить</button>
+  </div>
+  <p *ngIf="swipeState !== 'idle'" class="field-note" role="status">Сохраняем выбор…</p>
   <div *ngIf="loading" class="spinner" aria-label="Загрузка профилей"></div>
-  <section *ngIf="!loading && !hasMore" class="empty-state">
+  <section *ngIf="!loading && !hasMore && !error && !needsSetup" class="empty-state">
     <h3>На сегодня все</h3>
     <p>Загляните позже — появятся новые люди.</p>
   </section>
@@ -22,17 +33,8 @@
         [class.swipe-left]="swipeState === 'left'"
         [class.swipe-right]="swipeState === 'right'"
       >
-        <div class="card-photo" role="img" [attr.aria-label]="prof.name || 'Фото профиля'">
-          <span class="photo-placeholder" aria-hidden="true">{{
-            prof.name?.charAt(0) || '?'
-          }}</span>
-          <img
-            *ngIf="getPhotoUrl(prof)"
-            class="profile-picture"
-            [src]="getPhotoUrl(prof)"
-            alt=""
-            (error)="photoFailed(prof.photo_url || '')"
-          />
+        <div class="card-monogram" aria-hidden="true">
+          {{ prof.name?.charAt(0) || '?' }}
         </div>
         <div class="card-detail">
           <h2>
@@ -46,7 +48,8 @@
             >
           </p>
           <p class="shared-interests" *ngIf="prof.shared_interests > 0">
-            <app-icon name="heart" [size]="14" />Общих интересов: {{ prof.shared_interests }}
+            <app-icon name="heart" [size]="14" />Общих интересов:
+            {{ prof.shared_interests }}
           </p>
           <details
             *ngIf="prof.about_me || prof.looking_for"
@@ -56,7 +59,9 @@
           >
             <summary>О человеке</summary>
             <p *ngIf="prof.about_me">{{ prof.about_me }}</p>
-            <p class="muted" *ngIf="prof.looking_for">{{ optionName(prof.looking_for) }}</p>
+            <p class="muted" *ngIf="prof.looking_for">
+              {{ optionName(prof.looking_for) }}
+            </p>
           </details>
         </div>
       </article>

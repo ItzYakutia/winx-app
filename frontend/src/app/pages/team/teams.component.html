@@ -10,7 +10,7 @@
       <div class="team-summary-header">
         <h2>{{ team.name }}</h2>
         <button class="btn btn-outline" (click)="open('code')">
-          <app-icon name="copy" [size]="16" />Код команды
+          <app-icon name="copy" [size]="16" />Пригласить
         </button>
       </div>
       <p
@@ -28,9 +28,12 @@
             (click)="member = person"
             [attr.aria-label]="'Открыть профиль: ' + person.name"
           >
-            <span class="initials" aria-hidden="true">{{ initials(person.name) }}</span
-            ><span class="person-info"
-              ><strong>{{ person.name || 'Студент' }}</strong
+            <span class="initials" aria-hidden="true">{{ initials(person.name) }}</span><span
+              class="person-info"
+              ><strong
+                >{{ person.name || 'Студент' }}{{ person.user_id === myId ? ' (вы)' : '' }}</strong
+              ><small *ngIf="person.user_id === team.created_by" class="muted"
+                >Создатель команды</small
               ><span *ngIf="person.preferred_role" class="role">{{
                 person.preferred_role
               }}</span></span
@@ -38,13 +41,23 @@
           </button>
         </article>
       </div>
+      <p class="field-note mt-16">
+        Нажмите на участника, чтобы посмотреть профиль{{
+          team.created_by === myId
+            ? ' или удалить его из команды.'
+            : '. Удалять участников может создатель команды.'
+        }}
+      </p>
+      <button type="button" class="logout-link" [disabled]="busy" (click)="remove(myId)">
+        Выйти из команды
+      </button>
     </section>
     <section *ngIf="!team && !loadFailed" class="empty-state team-empty">
       <div class="empty-icon"><app-icon name="users" [size]="24" /></div>
       <h3>Соберите свою команду</h3>
       <p>До 5 человек на учебный проект.</p>
       <button class="btn btn-primary" (click)="open('create')">Создать команду</button
-      ><button class="btn btn-ghost join-link" (click)="open('join')">У меня есть код</button>
+      ><button class="btn btn-ghost join-link" (click)="open('join')">Вступить по коду</button>
     </section>
   </ng-container>
   <app-sheet
@@ -70,6 +83,10 @@
           />
         </div>
         <div *ngIf="panel === 'join'" class="form-group">
+          <p class="field-note">
+            Получите код из 6 символов у участника команды. Её предмет должен быть выбран в вашем
+            профиле.
+          </p>
           <label for="join-code">Код приглашения</label
           ><input
             id="join-code"
@@ -101,7 +118,10 @@
   </app-sheet>
   <app-sheet *ngIf="panel === 'code' && team" title="Пригласить в команду" (closed)="close()">
     <div class="sheet-body">
-      <p class="muted">Отправьте код однокурсникам.</p>
+      <p class="muted">
+        Отправьте код однокурснику. Он открывает «Команда» → «Вступить по коду» и вводит код.
+        Предмет команды нужно выбрать в профиле.
+      </p>
       <p class="team-code">{{ team.join_code }}</p>
       <p *ngIf="copyMessage" class="field-note text-center" role="status">{{ copyMessage }}</p>
     </div>
@@ -121,5 +141,11 @@
         Профиль пока не заполнен.
       </p>
     </div>
+    <div class="sheet-actions" *ngIf="member.user_id !== myId && team?.created_by === myId">
+      <button class="btn btn-danger" [disabled]="busy" (click)="remove(member.user_id)">
+        Удалить из команды
+      </button>
+    </div>
+    <p class="error-msg" role="alert" *ngIf="error">{{ error }}</p>
   </app-sheet>
 </main>

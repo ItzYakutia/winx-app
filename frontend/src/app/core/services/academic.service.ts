@@ -38,6 +38,7 @@ export interface AcademicConversation {
   can_write: boolean;
 }
 export interface Team {
+  created_by?: number;
   id: number;
   course_id: number;
   name: string;
@@ -86,7 +87,9 @@ export class AcademicService {
     return this.http.get<ApiResponse<Course[]>>(`${this.base}/courses/me`);
   }
   saveCourses(course_ids: number[]) {
-    return this.http.put<ApiResponse<Course[]>>(`${this.base}/courses/me`, { course_ids });
+    return this.http.put<ApiResponse<Course[]>>(`${this.base}/courses/me`, {
+      course_ids,
+    });
   }
   profile() {
     return this.http.get<ApiResponse<AcademicProfile>>(`${this.base}/me`);
@@ -112,7 +115,9 @@ export class AcademicService {
     });
   }
   myTeam(course_id: number) {
-    return this.http.get<ApiResponse<Team>>(`${this.base}/teams/me`, { params: { course_id } });
+    return this.http.get<ApiResponse<Team>>(`${this.base}/teams/me`, {
+      params: { course_id },
+    });
   }
   conversations(course_id: number, offset = 0) {
     return this.http.get<ApiResponse<AcademicConversation[]>>(`${this.base}/conversations`, {
@@ -142,9 +147,20 @@ export class AcademicService {
     });
   }
   createTeam(course_id: number, name: string) {
-    return this.http.post<ApiResponse<Team>>(`${this.base}/teams`, { course_id, name });
+    return this.http.post<ApiResponse<Team>>(`${this.base}/teams`, {
+      course_id,
+      name,
+    });
   }
   joinTeam(join_code: string) {
-    return this.http.post<ApiResponse<Team>>(`${this.base}/teams/join`, { join_code });
+    return this.http.post<ApiResponse<Team>>(`${this.base}/teams/join`, {
+      join_code,
+    });
+  }
+  removeMember(course_id: number, member_id: number) {
+    return this.http.post(`${this.base}/teams/member`, {
+      course_id,
+      member_id,
+    });
   }
 }

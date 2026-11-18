@@ -9,8 +9,11 @@
     <a routerLink="/chats" class="selected" aria-current="page">Чаты</a
     ><a routerLink="/matches">Совпадения</a>
   </nav>
+  <div *ngIf="error" class="error-msg" role="alert">
+    {{ error }}<button class="btn btn-ghost" (click)="load()">Повторить</button>
+  </div>
   <div *ngIf="loading" class="spinner" aria-label="Загрузка чатов"></div>
-  <section *ngIf="!loading && chats.length === 0" class="empty-state">
+  <section *ngIf="!loading && !error && chats.length === 0" class="empty-state">
     <div class="empty-icon"><app-icon name="chat" [size]="24" /></div>
     <h3>Пока нет переписок</h3>
     <p>Начните общение после взаимной симпатии.</p>

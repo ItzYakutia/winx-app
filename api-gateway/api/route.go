@@ -72,8 +72,6 @@ func (s *Server) initProfileRoutes(handler *profile.Handler) {
 	profileRoutes := mainRouter.Group("/profile")
 	profileRoutes.GET("/me", handler.GetMe)
 	profileRoutes.POST("/store", handler.Store)
-	profileRoutes.GET("/photo", s.social(handler.GetPhotos))
-	profileRoutes.POST("/photo/store", s.social(handler.StorePhoto))
 	profileRoutes.GET("/interests", handler.ListInterests)
 	profileRoutes.GET("/location/ip", handler.LookupLocationByIP)
 

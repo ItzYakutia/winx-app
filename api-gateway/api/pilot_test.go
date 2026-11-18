@@ -12,8 +12,6 @@ import (
 
 // socialRoutes are every legacy Social endpoint exposed by the gateway.
 var socialRoutes = []struct{ method, path string }{
-	{http.MethodGet, "/api/v1/profile/photo"},
-	{http.MethodPost, "/api/v1/profile/photo/store"},
 	{http.MethodPost, "/api/v1/swipes/left"},
 	{http.MethodPost, "/api/v1/swipes/right"},
 	{http.MethodGet, "/api/v1/matches"},
@@ -103,4 +101,19 @@ func TestSocialHandler_OnlyWrapsInPilotMode(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, run(socialHandler(true, inner)))
 	assert.False(t, called, "inner handler must not run in pilot mode")
+}
+
+func TestMVP_PhotoEndpointsAreUnavailable(t *testing.T) {
+	for _, pilot := range []bool{false, true} {
+		engine := newTestEngine(pilot)
+		for _, route := range []struct{ method, path string }{
+			{http.MethodGet, "/api/v1/profile/photo"},
+			{http.MethodPost, "/api/v1/profile/photo/store"},
+			{http.MethodGet, "/api/v1/profile/photo/file/avatar.png"},
+		} {
+			rec := httptest.NewRecorder()
+			engine.ServeHTTP(rec, httptest.NewRequest(route.method, route.path, nil))
+			assert.Equal(t, http.StatusNotFound, rec.Code)
+		}
+	}
 }

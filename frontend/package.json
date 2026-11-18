@@ -7,7 +7,8 @@
     "build": "ng build",
     "test:session": "node --test tests/auth-session.test.cjs",
     "test:swipes": "node --test tests/swipe-card.test.cjs",
-    "watch": "ng build --watch --configuration development"
+    "watch": "ng build --watch --configuration development",
+    "test:onboarding": "node --test tests/onboarding.test.cjs"
   },
   "private": true,
   "dependencies": {

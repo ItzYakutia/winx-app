@@ -5,8 +5,11 @@
       ><app-icon name="back" [size]="21"
     /></a>
   </header>
+  <div *ngIf="error" class="error-msg" role="alert">
+    {{ error }}<button class="btn btn-ghost" (click)="load()">Повторить</button>
+  </div>
   <div *ngIf="loading" class="spinner" aria-label="Загрузка уведомлений"></div>
-  <section *ngIf="!loading && notifications.length === 0" class="empty-state">
+  <section *ngIf="!loading && !error && notifications.length === 0" class="empty-state">
     <h3>Ничего нового</h3>
   </section>
   <div *ngIf="!loading && notifications.length" class="communication-list">

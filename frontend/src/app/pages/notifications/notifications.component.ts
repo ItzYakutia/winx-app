@@ -1,3 +1,4 @@
+import { academicError } from '../../core/services/academic.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -14,16 +15,26 @@ import { IconComponent } from '../../shared/icon/icon.component';
 export class NotificationsComponent implements OnInit {
   notifications: Notification[] = [];
   loading = true;
+  error = '';
 
   constructor(private notifService: NotificationService) {}
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading = true;
+    this.error = '';
     this.notifService.list().subscribe({
       next: (res) => {
         this.notifications = res.data ?? [];
         this.loading = false;
       },
-      error: () => (this.loading = false),
+      error: (error) => {
+        this.loading = false;
+        this.error = academicError(error);
+      },
     });
   }
 

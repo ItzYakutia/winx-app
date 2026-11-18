@@ -23,12 +23,6 @@ export interface Profile {
     country?: string;
     current_location?: { latitude: number; longitude: number };
   };
-  photos?: Photo[];
-}
-
-export interface Photo {
-  id: number;
-  url: string;
 }
 
 export interface Interest {
@@ -54,21 +48,17 @@ export class ProfileService {
     return this.http.post<ApiResponse<Profile>>('/api/v1/profile/store', profile);
   }
 
-  getPhoto() {
-    return this.http.get<ApiResponse<Photo>>('/api/v1/profile/photo');
-  }
-
-  storePhoto(file: File) {
-    const formData = new FormData();
-    formData.append('photo', file);
-    return this.http.post<ApiResponse<Photo>>('/api/v1/profile/photo/store', formData);
-  }
-
   getInterests() {
     return this.http.get<ApiResponse<Interest[]>>('/api/v1/profile/interests');
   }
 
   lookupLocationByIP() {
-    return this.http.get<ApiResponse<{ city: string; country: string; current_location: { latitude: number; longitude: number } }>>('/api/v1/profile/location/ip');
+    return this.http.get<
+      ApiResponse<{
+        city: string;
+        country: string;
+        current_location: { latitude: number; longitude: number };
+      }>
+    >('/api/v1/profile/location/ip');
   }
 }

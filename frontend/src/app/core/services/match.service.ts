@@ -27,10 +27,14 @@ export class MatchService {
   }
 
   swipeLeft(swiped_id: number) {
-    return this.http.post<ApiResponse<null>>('/api/v1/swipes/left', { swiped_id });
+    return this.http.post<ApiResponse<null>>('/api/v1/swipes/left', {
+      swiped_id,
+    });
   }
 
   swipeRight(swiped_id: number) {
-    return this.http.post<ApiResponse<null>>('/api/v1/swipes/right', { swiped_id });
+    return this.http.post<ApiResponse<Match | null>>('/api/v1/swipes/right', {
+      swiped_id,
+    });
   }
 }

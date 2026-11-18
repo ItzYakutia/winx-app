@@ -1,3 +1,4 @@
+import { academicError } from '../../core/services/academic.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -17,6 +18,7 @@ export class ChatsComponent implements OnInit {
   chats: Chat[] = [];
   matchNameMap: Record<number, string> = {};
   loading = true;
+  error = '';
 
   constructor(
     private chatService: ChatService,
@@ -24,6 +26,12 @@ export class ChatsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading = true;
+    this.error = '';
     forkJoin({
       chats: this.chatService.listChats(),
       matches: this.matchService.list(),
@@ -36,7 +44,10 @@ export class ChatsComponent implements OnInit {
         }
         this.loading = false;
       },
-      error: () => (this.loading = false),
+      error: (error) => {
+        this.loading = false;
+        this.error = academicError(error);
+      },
     });
   }
 

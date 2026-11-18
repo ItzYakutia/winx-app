@@ -33,7 +33,9 @@
         <div class="candidate-identity">
           <span class="candidate-initials" aria-hidden="true">{{ initials(candidate.name) }}</span>
           <h2>{{ candidate.name || 'Студент' }}</h2>
-          <p class="candidate-role">{{ candidate.preferred_role || 'Роль пока не указана' }}</p>
+          <p class="candidate-role">
+            {{ candidate.preferred_role || 'Роль пока не указана' }}
+          </p>
         </div>
         <div class="candidate-skills" *ngIf="candidate.skills.length">
           <span class="skill" *ngFor="let skill of candidate.skills | slice: 0 : 4">{{
@@ -83,7 +85,9 @@
   <p *ngIf="feedback" class="quiet-toast" role="status">{{ feedback }}</p>
   <app-sheet *ngIf="selected" [title]="selected.name || 'Студент'" (closed)="selected = null"
     ><div class="sheet-body">
-      <p *ngIf="selected.preferred_role" class="detail-role">{{ selected.preferred_role }}</p>
+      <p *ngIf="selected.preferred_role" class="detail-role">
+        {{ selected.preferred_role }}
+      </p>
       <div class="skill-list">
         <span class="skill" *ngFor="let skill of selected.skills">{{ skill }}</span>
       </div>

@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom, forkJoin, catchError, of } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { AcademicService, Course, academicError } from '../../core/services/academic.service';
-import { ProfileService } from '../../core/services/profile.service';
+import { Profile, ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { SheetComponent } from '../../shared/sheet/sheet.component';
 import { courseName } from '../../shared/text';
 
-type Section = 'courses' | 'skills' | 'role';
+type Section = 'basics' | 'courses' | 'skills' | 'role';
 @Component({
   selector: 'app-academic-profile',
   standalone: true,
@@ -23,15 +23,28 @@ export class AcademicProfileComponent implements OnInit {
   skillsText = '';
   role = '';
   name = 'Мой профиль';
+  city = '';
+  private userProfile: Profile = {};
   loading = true;
   ready = false;
   saving = false;
   error = '';
   success = '';
   editing: Section | null = null;
-  titles = { courses: 'Предметы', skills: 'Навыки', role: 'Роль в команде' };
+  titles = {
+    basics: 'Основное',
+    courses: 'Предметы',
+    skills: 'Навыки',
+    role: 'Роль в команде',
+  };
   label = courseName;
-  private snapshot = { ids: [] as number[], skills: '', role: '' };
+  private snapshot = {
+    name: '',
+    city: '',
+    ids: [] as number[],
+    skills: '',
+    role: '',
+  };
   constructor(
     private api: AcademicService,
     private social: ProfileService,
@@ -48,14 +61,16 @@ export class AcademicProfileComponent implements OnInit {
       courses: this.api.courses(),
       selected: this.api.myCourses(),
       profile: this.api.profile(),
-      user: this.social.getMe().pipe(catchError(() => of(null))),
+      user: this.social.getMe(),
     }).subscribe({
       next: ({ courses, selected, profile, user }) => {
         this.courses = courses.data ?? [];
         this.selectedIds = (selected.data ?? []).map((c) => c.id);
         this.skillsText = (profile.data?.skills ?? []).join(', ');
         this.role = profile.data?.preferred_role ?? '';
-        this.name = user?.data?.first_name || 'Мой профиль';
+        this.userProfile = user.data;
+        this.name = user.data.first_name || 'Мой профиль';
+        this.city = user.data.location?.city || '';
         this.loading = false;
         this.ready = true;
       },
@@ -90,12 +105,20 @@ export class AcademicProfileComponent implements OnInit {
     );
   }
   edit(section: Section): void {
-    this.snapshot = { ids: [...this.selectedIds], skills: this.skillsText, role: this.role };
+    this.snapshot = {
+      name: this.name,
+      city: this.city,
+      ids: [...this.selectedIds],
+      skills: this.skillsText,
+      role: this.role,
+    };
     this.editing = section;
     this.error = '';
     this.success = '';
   }
   cancel(): void {
+    this.name = this.snapshot.name;
+    this.city = this.snapshot.city;
     this.selectedIds = [...this.snapshot.ids];
     this.skillsText = this.snapshot.skills;
     this.role = this.snapshot.role;
@@ -111,6 +134,7 @@ export class AcademicProfileComponent implements OnInit {
     if (
       this.saving ||
       !this.editing ||
+      (this.editing === 'basics' && (!this.name.trim() || !this.city.trim())) ||
       (this.editing === 'skills' && this.skillsError) ||
       [...this.role.trim()].length > 50
     )
@@ -118,12 +142,25 @@ export class AcademicProfileComponent implements OnInit {
     this.saving = true;
     this.error = '';
     try {
-      if (this.editing === 'courses') {
+      if (this.editing === 'basics') {
+        const result = await firstValueFrom(
+          this.social.store({
+            first_name: this.name.trim(),
+            location: { ...this.userProfile.location, city: this.city.trim() },
+          }),
+        );
+        this.userProfile = result.data;
+        this.name = result.data.first_name || 'Мой профиль';
+        this.city = result.data.location?.city || '';
+      } else if (this.editing === 'courses') {
         const result = await firstValueFrom(this.api.saveCourses(this.selectedIds));
         this.selectedIds = result.data.map((c) => c.id);
       } else {
         const result = await firstValueFrom(
-          this.api.saveProfile({ skills: this.skills, preferred_role: this.role.trim() }),
+          this.api.saveProfile({
+            skills: this.skills,
+            preferred_role: this.role.trim(),
+          }),
         );
         this.skillsText = result.data.skills.join(', ');
         this.role = result.data.preferred_role;

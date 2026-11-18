@@ -4,6 +4,7 @@ import "time"
 
 type Team struct {
 	ID          int64
+	CreatedBy   *int64
 	CourseID    int64
 	Name        string
 	JoinCode    string

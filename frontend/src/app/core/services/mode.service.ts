@@ -25,7 +25,7 @@ export class ModeService {
     this.router.events.subscribe((event) => {
       if (!(event instanceof NavigationEnd)) return;
       const path = event.urlAfterRedirects;
-      if (path === '/' || /^\/(login|register)([/?#]|$)/.test(path)) return;
+      if (path === '/' || /^\/(login|register|onboarding)([/?#]|$)/.test(path)) return;
       const mode: AppMode = path.startsWith('/team/') ? 'team' : 'social';
       this.lastPath[mode] = path;
       localStorage.setItem(`winx_${mode}_path`, path);

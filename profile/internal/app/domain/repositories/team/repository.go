@@ -109,7 +109,7 @@ func (r *repository) GetByUserCourse(ctx context.Context, userID, courseID int64
 	var team models.Team
 
 	res := r.db.WithContext(ctx).Raw(
-		`SELECT t.id, t.course_id, t.name, t.join_code, t.created_at,
+		`SELECT t.id, t.created_by,t.course_id, t.name, t.join_code, t.created_at,
 		        (SELECT COUNT(*) FROM team_members m WHERE m.team_id = t.id) AS member_count
 		   FROM teams t
 		   JOIN team_members me ON me.team_id = t.id

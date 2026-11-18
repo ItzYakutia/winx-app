@@ -9,7 +9,7 @@
   </div>
   <ng-container *ngIf="!loading && ready">
     <div class="profile-identity">
-      <span class="profile-initial">{{ name.charAt(0) }}</span>
+      <span class="profile-initial" aria-hidden="true">{{ name.charAt(0) }}</span>
       <div>
         <h2>{{ name }}</h2>
         <p>{{ role || 'Роль не указана' }}</p>
@@ -19,6 +19,11 @@
       Выберите предметы, чтобы найти однокурсников.
     </p>
     <div class="settings-list">
+      <button class="setting-row" (click)="edit('basics')">
+        <app-icon name="user" /><span
+          ><strong>Основное</strong><small>{{ name }} · {{ city }}</small></span
+        ><app-icon name="chevron" [size]="17" />
+      </button>
       <button class="setting-row" (click)="edit('courses')">
         <app-icon name="book" /><span
           ><strong>Предметы</strong><small>{{ selectedNames }}</small></span
@@ -49,6 +54,31 @@
   >
     <form class="sheet-form" (ngSubmit)="save()" #form="ngForm">
       <div class="sheet-body">
+        <ng-container *ngIf="section === 'basics'"
+          ><div class="form-group">
+            <label for="team-name-profile">Имя</label
+            ><input
+              id="team-name-profile"
+              class="form-control"
+              [(ngModel)]="name"
+              name="name"
+              required
+              maxlength="100"
+              autocomplete="given-name"
+            />
+          </div>
+          <div class="form-group">
+            <label for="team-city-profile">Город</label
+            ><input
+              id="team-city-profile"
+              class="form-control"
+              [(ngModel)]="city"
+              name="city"
+              required
+              maxlength="100"
+              autocomplete="address-level2"
+            /></div
+        ></ng-container>
         <div *ngIf="section === 'courses'" class="course-options">
           <label
             *ngFor="let course of courses"
@@ -72,7 +102,9 @@
             placeholder="Go, SQL, Figma"
           ></textarea>
           <p class="field-note">Перечислите через запятую.</p>
-          <p class="error-msg" *ngIf="skillsError" role="alert">{{ skillsError }}</p>
+          <p class="error-msg" *ngIf="skillsError" role="alert">
+            {{ skillsError }}
+          </p>
         </div>
         <div *ngIf="section === 'role'" class="form-group">
           <label for="preferred-role">Чем хотите заниматься?</label

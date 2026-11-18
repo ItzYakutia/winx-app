@@ -8,6 +8,7 @@ import (
 
 type Resource struct {
 	ID          int64     `json:"id"`
+	CreatedBy   *int64    `json:"created_by"`
 	CourseID    int64     `json:"course_id"`
 	Name        string    `json:"name"`
 	JoinCode    string    `json:"join_code"`
@@ -19,6 +20,7 @@ type Resource struct {
 func NewResource(item models.Team) *Resource {
 	return &Resource{
 		ID:          item.ID,
+		CreatedBy:   item.CreatedBy,
 		CourseID:    item.CourseID,
 		Name:        item.Name,
 		JoinCode:    item.JoinCode,

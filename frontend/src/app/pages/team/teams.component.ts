@@ -14,6 +14,7 @@ import {
 import { CoursePickerComponent } from '../../shared/course-picker/course-picker.component';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { SheetComponent } from '../../shared/sheet/sheet.component';
+import { ProfileService } from '../../core/services/profile.service';
 
 @Component({
   selector: 'app-teams',
@@ -36,8 +37,39 @@ export class TeamsComponent {
   error = '';
   copyMessage = '';
   loadFailed = false;
+  myId = 0;
   private requestId = 0;
-  constructor(private api: AcademicService) {}
+  constructor(
+    private api: AcademicService,
+    profiles: ProfileService,
+  ) {
+    profiles
+      .getMe()
+      .subscribe({ next: (r) => (this.myId = r.data?.user_id || 0), error: () => {} });
+  }
+  async remove(memberId: number): Promise<void> {
+    if (!this.course || this.busy) return;
+    const self = memberId === this.myId;
+    if (
+      !confirm(
+        self
+          ? 'Выйти из команды? Права создателя при необходимости перейдут следующему участнику.'
+          : 'Удалить участника из команды? Его переписки с командой будут закрыты.',
+      )
+    )
+      return;
+    this.busy = true;
+    this.error = '';
+    try {
+      await firstValueFrom(this.api.removeMember(this.course.id, memberId));
+      this.member = null;
+      await this.load();
+    } catch (error) {
+      this.error = academicError(error);
+    } finally {
+      this.busy = false;
+    }
+  }
   selectCourse(course: Course | null): void {
     this.course = course;
     this.panel = null;

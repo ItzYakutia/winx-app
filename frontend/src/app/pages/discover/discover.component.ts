@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import {
   RecommendationService,
@@ -9,19 +11,25 @@ import { IconComponent } from '../../shared/icon/icon.component';
 import { optionName } from '../../shared/text';
 import { SwipeCardDirective, SwipeDirection } from '../../shared/swipe-card/swipe-card.directive';
 
+import { Subject, forkJoin, takeUntil, timer } from 'rxjs';
+import { academicError } from '../../core/services/academic.service';
+
 type SwipeState = 'idle' | 'left' | 'right';
 
 @Component({
   selector: 'app-discover',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, IconComponent, SwipeCardDirective],
+  imports: [CommonModule, DecimalPipe, IconComponent, SwipeCardDirective, RouterLink],
   templateUrl: './discover.component.html',
   styleUrl: './discover.component.css',
 })
-export class DiscoverComponent implements OnInit {
+export class DiscoverComponent implements OnInit, OnDestroy {
   profiles: RecommendationProfile[] = [];
   currentIndex = 0;
   loading = true;
+  error = '';
+  needsSetup = false;
+  private readonly destroyed = new Subject<void>();
   swipeState: SwipeState = 'idle';
   matchMessage = '';
   detailsOpen = false;
@@ -35,7 +43,6 @@ export class DiscoverComponent implements OnInit {
     direction === 'right' ? this.swipeRight() : this.swipeLeft();
   }
   optionName = optionName;
-  private failedPhotos = new Set<string>();
 
   constructor(
     private recommendations: RecommendationService,
@@ -46,18 +53,26 @@ export class DiscoverComponent implements OnInit {
     this.load();
   }
 
-  private load(): void {
+  load(): void {
     this.loading = true;
-    this.recommendations.list(20, 0).subscribe({
-      next: (res) => {
-        this.profiles = res.data ?? [];
-        this.loading = false;
-      },
-      error: () => {
-        this.profiles = [];
-        this.loading = false;
-      },
-    });
+    this.error = '';
+    this.needsSetup = false;
+    this.currentIndex = 0;
+    this.recommendations
+      .list(20, 0)
+      .pipe(takeUntil(this.destroyed))
+      .subscribe({
+        next: (res) => {
+          this.profiles = res.data ?? [];
+          this.loading = false;
+        },
+        error: (error) => {
+          this.profiles = [];
+          this.loading = false;
+          if (error instanceof HttpErrorResponse && error.status === 422) this.needsSetup = true;
+          else this.error = academicError(error);
+        },
+      });
   }
 
   get current(): RecommendationProfile | null {
@@ -69,28 +84,41 @@ export class DiscoverComponent implements OnInit {
   }
 
   swipeLeft(): void {
-    const profile = this.current;
-    if (!profile?.user_id || this.swipeState !== 'idle') return;
-    this.swipeState = 'left';
-    this.matchService.swipeLeft(profile.user_id).subscribe({ error: () => {} });
-    setTimeout(() => this.next(), 420);
+    this.saveSwipe('left');
+  }
+  swipeRight(): void {
+    this.saveSwipe('right');
   }
 
-  swipeRight(): void {
+  private saveSwipe(direction: 'left' | 'right'): void {
     const profile = this.current;
     if (!profile?.user_id || this.swipeState !== 'idle') return;
-    this.swipeState = 'right';
-    const name = profile.name || 'them';
-    this.matchService.swipeRight(profile.user_id).subscribe({
-      next: (res) => {
-        if (res.message?.toLowerCase().includes('match')) {
-          this.matchMessage = `Взаимная симпатия с ${name}`;
-          setTimeout(() => (this.matchMessage = ''), 3000);
-        }
-      },
-      error: () => {},
-    });
-    setTimeout(() => this.next(), 420);
+    this.error = '';
+    this.matchMessage = '';
+    this.swipeState = direction;
+    this.dragX = 0;
+    const request =
+      direction === 'left'
+        ? this.matchService.swipeLeft(profile.user_id)
+        : this.matchService.swipeRight(profile.user_id);
+    forkJoin({ response: request, animation: timer(420) })
+      .pipe(takeUntil(this.destroyed))
+      .subscribe({
+        next: ({ response }) => {
+          if (direction === 'right' && response.data)
+            this.matchMessage = 'Взаимная симпатия с ' + (profile.name || 'новым знакомым');
+          this.next();
+        },
+        error: (error) => {
+          this.swipeState = 'idle';
+          this.error = academicError(error, 'Не удалось сохранить выбор. Попробуйте ещё раз.');
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed.next();
+    this.destroyed.complete();
   }
 
   private next(): void {
@@ -101,14 +129,5 @@ export class DiscoverComponent implements OnInit {
       this.load();
       this.currentIndex = 0;
     }
-  }
-
-  getPhotoUrl(profile: RecommendationProfile | null): string {
-    const url = profile?.photo_url || '';
-    return this.failedPhotos.has(url) ? '' : url;
-  }
-
-  photoFailed(url: string): void {
-    this.failedPhotos.add(url);
   }
 }

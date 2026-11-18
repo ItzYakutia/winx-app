@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { authError } from '../../core/services/auth-feedback';
 import { safeReturnUrl } from '../../core/services/auth-session';
-import { ModeService } from '../../core/services/mode.service';
 
 @Component({
   selector: 'app-register',
@@ -25,7 +24,6 @@ export class RegisterComponent {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private mode: ModeService,
     route: ActivatedRoute,
   ) {
     this.returnUrl = safeReturnUrl(route.snapshot.queryParamMap.get('returnUrl'));
@@ -43,10 +41,10 @@ export class RegisterComponent {
         this.success = true;
         this.auth.login(this.email.trim(), this.password).subscribe({
           next: () =>
-            void this.router.navigateByUrl(
-              this.returnUrl || (this.mode.current() === 'team' ? '/team/profile' : '/profile'),
-              { replaceUrl: true },
-            ),
+            void this.router.navigate(['/onboarding'], {
+              replaceUrl: true,
+              queryParams: { returnUrl: this.returnUrl },
+            }),
           error: () => {
             this.loading = false;
             this.error = 'Аккаунт создан. Войдите с указанной почтой и паролем.';
