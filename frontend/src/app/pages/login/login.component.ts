@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { ModeService } from '../../core/services/mode.service';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,7 @@ export class LoginComponent {
   loading = false;
   error = '';
 
-  constructor(private auth: AuthService, private router: Router, private profileService: ProfileService) {}
+  constructor(private auth: AuthService, private router: Router, private profileService: ProfileService, private mode: ModeService) {}
 
   submit(): void {
     this.error = '';
@@ -33,6 +34,10 @@ export class LoginComponent {
   }
 
   private checkProfileAndRedirect(): void {
+    if (this.mode.current() === 'team') {
+      this.router.navigate(['/team/discover']);
+      return;
+    }
     this.profileService.getMe().subscribe({
       next: (res) => {
         const p = res.data;

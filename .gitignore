@@ -1,0 +1,3 @@
+.local/
+**/config.dev.local.yaml
+frontend/.npm-cache/

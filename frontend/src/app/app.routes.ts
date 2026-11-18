@@ -2,7 +2,12 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/discover', pathMatch: 'full' },
+  { path: '', loadComponent: () => import('./pages/home-redirect.component').then(m => m.HomeRedirectComponent), pathMatch: 'full', canActivate: [authGuard] },
+  { path: 'team', redirectTo: 'team/discover', pathMatch: 'full' },
+  { path: 'team/profile', loadComponent: () => import('./pages/team/academic-profile.component').then(m => m.AcademicProfileComponent), canActivate: [authGuard] },
+  { path: 'team/discover', loadComponent: () => import('./pages/team/course-deck.component').then(m => m.CourseDeckComponent), canActivate: [authGuard] },
+  { path: 'team/shortlist', loadComponent: () => import('./pages/team/shortlist.component').then(m => m.ShortlistComponent), canActivate: [authGuard] },
+  { path: 'team/teams', loadComponent: () => import('./pages/team/teams.component').then(m => m.TeamsComponent), canActivate: [authGuard] },
   {
     path: 'login',
     loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent),
@@ -41,5 +46,5 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/notifications/notifications.component').then(m => m.NotificationsComponent),
     canActivate: [authGuard],
   },
-  { path: '**', redirectTo: '/discover' },
+  { path: '**', redirectTo: '' },
 ];

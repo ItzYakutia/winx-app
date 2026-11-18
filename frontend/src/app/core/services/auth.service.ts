@@ -29,8 +29,12 @@ export class AuthService {
     );
   }
 
-  register(email: string, password: string) {
-    return this.http.post<void>('/api/v1/register', { email, password });
+  register(email: string, password: string, consentAccepted: boolean) {
+    return this.http.post<void>('/api/v1/register', {
+      email,
+      password,
+      consent_accepted: consentAccepted,
+    });
   }
 
   logout() {

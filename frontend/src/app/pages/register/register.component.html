@@ -46,7 +46,17 @@
         />
       </div>
 
-      <button type="submit" class="btn btn-primary w-full" [disabled]="loading || !form.valid">
+      <label class="consent-field">
+        <input
+          type="checkbox"
+          [(ngModel)]="consentAccepted"
+          name="consentAccepted"
+          required
+        />
+        <span>I agree to the processing of my account and profile data to use Winx.</span>
+      </label>
+
+      <button type="submit" class="btn btn-primary w-full" [disabled]="loading || !form.valid || !consentAccepted">
         {{ loading ? 'Creating account...' : 'Create Account ✨' }}
       </button>
     </form>

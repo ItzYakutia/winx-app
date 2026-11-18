@@ -1,0 +1,20 @@
+<main class="team-page">
+  <header class="team-header"><div><p class="eyebrow">Team Mode · Find your people</p><h1>Better projects start together.</h1><p class="intro">Meet classmates taking your course. Save a good fit, then build your team.</p></div><a routerLink="/team/shortlist" class="btn btn-outline">View saved ☆</a></header>
+  <app-course-picker [disabled]="saving" (courseChange)="selectCourse($event)"></app-course-picker>
+  <div *ngIf="loading" class="spinner" aria-label="Loading classmates"></div>
+  <div *ngIf="error" class="error-msg" role="alert">{{ error }} <button *ngIf="!current" class="btn btn-ghost" (click)="load()">Retry</button><span *ngIf="current">Your card is still here. Try Save or Pass again.</span></div>
+  <p *ngIf="feedback" class="success-message" role="status">{{ feedback }}</p>
+  <section class="deck-area" *ngIf="!loading && current as candidate">
+    <article class="candidate-card" [style.transform]="'translateX(' + dragX + 'px) rotate(' + dragX / 30 + 'deg)'" (pointerdown)="pointerDown($event)" (pointermove)="pointerMove($event)" (pointerup)="pointerUp($event)" (pointercancel)="cancelGesture()" (lostpointercapture)="cancelGesture()" [attr.aria-busy]="saving">
+      <span class="gesture-hint" *ngIf="dragX > 40">Save ☆</span><span class="gesture-hint" *ngIf="dragX < -40">Pass</span>
+      <div class="initials" aria-hidden="true">{{ initials(candidate.name) }}</div>
+      <p class="eyebrow">{{ course?.code }} · Classmate</p><h2>{{ candidate.name || 'Student #' + candidate.user_id }}</h2>
+      <p class="role">{{ candidate.preferred_role || 'Open to different roles' }}</p>
+      <div class="skill-list"><span class="skill" *ngFor="let skill of candidate.skills">{{ skill }}</span><span *ngIf="!candidate.skills.length" class="field-note">No skills added yet</span></div>
+      <p class="card-footer">Looking for teammates in {{ course?.title }}.<br />Swipe right to save, or use the buttons below.</p>
+    </article>
+    <p class="deck-count">{{ candidates.length }} classmates in this batch</p>
+    <div class="actions deck-controls"><button class="btn btn-outline" (click)="choose('pass')" [disabled]="saving">← Pass</button><button class="btn btn-primary" (click)="choose('like')" [disabled]="saving">{{ saving ? 'Saving…' : 'Save ☆' }}</button></div>
+  </section>
+  <section *ngIf="course && !loading && !current && !error" class="card empty-state"><div class="emoji" aria-hidden="true">✦</div><h3>You’re all caught up for {{ course.code }}</h3><p>No more eligible classmates right now. Try another course or come back later.</p><div class="actions mt-24" style="justify-content: center;"><button class="btn btn-outline" (click)="load()">Refresh candidates</button><a routerLink="/team/shortlist" class="btn btn-primary">See saved classmates</a></div></section>
+</main>

@@ -14,6 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class RegisterComponent {
   email = '';
   password = '';
+  consentAccepted = false;
   loading = false;
   error = '';
   success = false;
@@ -22,8 +23,12 @@ export class RegisterComponent {
 
   submit(): void {
     this.error = '';
+    if (!this.consentAccepted) {
+      this.error = 'Please agree to the processing of your personal data to create an account.';
+      return;
+    }
     this.loading = true;
-    this.auth.register(this.email, this.password).subscribe({
+    this.auth.register(this.email, this.password, this.consentAccepted).subscribe({
       next: () => {
         this.success = true;
         setTimeout(() => this.router.navigate(['/login']), 1500);

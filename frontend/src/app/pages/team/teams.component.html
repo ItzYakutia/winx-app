@@ -1,0 +1,23 @@
+<main class="team-page">
+  <header class="team-header"><div><p class="eyebrow">Team Mode · Make it happen</p><h1>Your next great team.</h1><p class="intro">Create a space for your course project, or join classmates with a code.</p></div></header>
+  <app-course-picker [disabled]="busy" (courseChange)="selectCourse($event)"></app-course-picker>
+  <div *ngIf="error" class="error-msg" role="alert">{{ error }} <button *ngIf="loadFailed" class="btn btn-ghost" (click)="load()">Retry</button></div>
+  <div *ngIf="success" class="success-message" role="status">{{ success }}</div>
+  <div *ngIf="loading" class="spinner" aria-label="Loading team"></div>
+  <ng-container *ngIf="course && !loading">
+    <section *ngIf="team" class="card">
+      <div class="team-heading"><div><p class="eyebrow">{{ course.code }} · {{ course.title }}</p><h2>{{ team.name }}</h2><p class="role">{{ team.member_count }} of 5 places filled</p></div><span class="status" [class.ready]="team.status === 'ready'" [class.full]="team.status === 'full'">{{ statusLabel(team.status) }}</span></div>
+      <div class="member-slots" aria-hidden="true"><span *ngFor="let slot of slots" class="member-slot" [class.filled]="slot <= team.member_count"></span></div>
+      <p class="section-copy">A team is ready with 3 members and can have up to 5.</p>
+      <label for="join-code-display" class="field-note">Your team’s join code</label>
+      <div class="join-code"><input id="join-code-display" class="form-control" [value]="team.join_code" readonly (focus)="$any($event.target).select()" /><button class="btn btn-outline" (click)="copyCode()">Copy code</button></div>
+      <p class="field-note" role="status">{{ copyMessage || 'Share this code through your usual messenger. Classmates must select this course before joining.' }}</p>
+      <div *ngIf="roster" class="mt-24"><h3>Meet your team</h3><article *ngFor="let member of roster.members" class="member-row"><strong>{{ member.name || 'Student #' + member.user_id }}</strong><p class="role">{{ member.preferred_role || 'Role not set yet' }}</p><div class="skill-list"><span *ngFor="let skill of member.skills" class="skill">{{ skill }}</span></div></article></div>
+    </section>
+    <div *ngIf="!team && !loadFailed" class="team-forms">
+      <form class="card" (ngSubmit)="create()" #createForm="ngForm"><h2>Start a team</h2><p class="section-copy">You’ll be the first member of a new {{ course.code }} team.</p><div class="form-group"><label for="team-name">Team name</label><input id="team-name" class="form-control" [(ngModel)]="name" name="name" required minlength="2" maxlength="50" placeholder="e.g. The Query Crew" [disabled]="busy" /></div><button type="submit" class="btn btn-primary w-full" [disabled]="busy || !createForm.valid || name.trim().length < 2">{{ busy ? 'Please wait…' : 'Create team' }}</button></form>
+      <form class="card" (ngSubmit)="join()" #joinForm="ngForm"><h2>Have a join code?</h2><p class="section-copy">Enter the code shared by your classmates. You can join one team per course.</p><div class="form-group"><label for="join-code">Join code</label><input id="join-code" class="form-control" [(ngModel)]="joinCode" name="joinCode" required maxlength="32" placeholder="Enter team code" autocomplete="off" [disabled]="busy" style="text-transform: uppercase;" /></div><button type="submit" class="btn btn-outline w-full" [disabled]="busy || !joinForm.valid || !joinCode.trim()">{{ busy ? 'Please wait…' : 'Join team' }}</button></form>
+    </div>
+    <p class="team-help">One team per course. Teams start with one member, become Ready at three, and are Full at five. Joining a team removes you from that course’s candidate pool.</p>
+  </ng-container>
+</main>
